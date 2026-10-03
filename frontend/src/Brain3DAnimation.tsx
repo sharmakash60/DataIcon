@@ -9,6 +9,8 @@ export interface AgentNode {
   number: string
   title: string
   role: string
+  serviceProvided: string
+  businessBenefit: string
   orbitIndex: number
   angleOffset: number
   description: string
@@ -22,6 +24,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '01',
     title: 'STRATEGY',
     role: 'AI Data Strategist',
+    serviceProvided: 'KPI & Revenue Objective Alignment',
+    businessBenefit: '+38% Faster Model ROI & Zero Wasted ML Spend',
     orbitIndex: 0,
     angleOffset: 0.1,
     description: 'Translates high-level business goals directly into profitable ML targets. Aligns predictive accuracy with measurable enterprise revenue.',
@@ -32,6 +36,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '02',
     title: 'DATA AGENT',
     role: 'Zero-Knowledge Engine',
+    serviceProvided: 'Air-Gapped In-VPC Data Preparation',
+    businessBenefit: '$0 Data Egress Liability · 100% In-House Privacy',
     orbitIndex: 1,
     angleOffset: 0.9,
     description: 'Profiles and transforms customer data strictly within customer VPC. Zero raw records ever leave your private network boundary.',
@@ -42,6 +48,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '03',
     title: 'GOVERNANCE',
     role: 'Compliance & Audit Guard',
+    serviceProvided: 'Turnkey Regulatory & Compliance Guardrails',
+    businessBenefit: 'Instant SOC 2, HIPAA & GDPR Board Sign-off',
     orbitIndex: 2,
     angleOffset: 1.7,
     description: 'Guarantees turnkey compliance for General Counsel and CISOs. Enforces immutable audit logging and strict tenant isolation.',
@@ -52,6 +60,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '04',
     title: 'ML PIPELINE',
     role: 'Autonomous AutoML Agent',
+    serviceProvided: 'Automated Multi-Model Algorithm Racing',
+    businessBenefit: 'Launch in 48 Hours Instead of 6 Months',
     orbitIndex: 0,
     angleOffset: 2.5,
     description: 'Orchestrates multi-model Bayesian hyperparameter search across CatBoost, XGBoost, and LightGBM models in hours instead of quarters.',
@@ -62,6 +72,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '05',
     title: 'EXPLAINABILITY',
     role: 'SHAP & Provenance Agent',
+    serviceProvided: 'Mathematical Decision & Prediction Proof',
+    businessBenefit: '100% Transparent Proof Leadership Trusts',
     orbitIndex: 1,
     angleOffset: 3.3,
     description: 'Calculates exact TreeSHAP attributions and What-If counterfactuals, providing transparent mathematical proof that wins executive trust.',
@@ -72,6 +84,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '06',
     title: 'DEPLOYMENT',
     role: 'Zero-Trust Serving Agent',
+    serviceProvided: 'One-Click Sub-5ms Production Serving',
+    businessBenefit: '65% Lower Infrastructure TCO',
     orbitIndex: 2,
     angleOffset: 4.1,
     description: 'Packages models into signed containers for sub-5ms real-time scoring directly within your private edge or cloud infrastructure.',
@@ -82,6 +96,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '07',
     title: 'ANALYTICS',
     role: 'Executive Intelligence Agent',
+    serviceProvided: 'Automated Boardroom & ROI Synthesis',
+    businessBenefit: 'Saves 100+ Quarterly Reporting Hours',
     orbitIndex: 0,
     angleOffset: 4.9,
     description: 'Synthesizes C-suite audit dossiers, ROI impact summaries, and board presentations, saving 100+ reporting hours quarterly.',
@@ -92,6 +108,8 @@ export const DATAPILOT_AGENTS: AgentNode[] = [
     number: '08',
     title: 'MONITORING',
     role: 'Continuous Health Sentinel',
+    serviceProvided: '24/7 Automated Revenue Drift Guardrails',
+    businessBenefit: '99.99% Reliability & Zero Surprise Outages',
     orbitIndex: 1,
     angleOffset: 5.7,
     description: 'Guards recurring revenue 24/7 by detecting feature drift, concept decay, and inference latency violations with automated alerting.',
@@ -105,6 +123,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '01',
     title: 'STRATEGY',
     role: 'AI Strategist',
+    serviceProvided: 'Executive Enclave M&A & Roadmap Modeling',
+    businessBenefit: '100% Board Confidentiality · Zero Cloud Leakage',
     orbitIndex: 0,
     angleOffset: 0.1,
     description: 'Simulates corporate strategic roadmaps, competitive positioning, and M&A scenarios with 100% board confidentiality. Zero strategic intelligence ever leaks to third-party models.',
@@ -115,6 +135,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '02',
     title: 'PRODUCT',
     role: 'AI Product Manager',
+    serviceProvided: 'Differential Privacy Telemetry Analysis',
+    businessBenefit: 'Identifies High-Value Features with Zero PII Exposure',
     orbitIndex: 1,
     angleOffset: 0.9,
     description: 'Analyzes user telemetry and customer usage patterns to prioritize high-impact features with differential privacy noise, ensuring zero customer identifiers leave your cloud.',
@@ -125,6 +147,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '03',
     title: 'MARKETING',
     role: 'AI Marketer',
+    serviceProvided: 'Private Customer Segmentation & Attribution',
+    businessBenefit: 'GDPR/CCPA Compliant Audience Growth',
     orbitIndex: 2,
     angleOffset: 1.7,
     description: 'Powers customer segmentation, conversion modeling, and campaign attribution without exposing sensitive email lists, names, or contact data outside your enterprise.',
@@ -135,6 +159,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '04',
     title: 'SALES',
     role: 'AI Sales Agent',
+    serviceProvided: 'In-VPC CRM Deal Velocity Forecasting',
+    businessBenefit: 'Accelerates Deal Pipeline Without Public AI Training',
     orbitIndex: 0,
     angleOffset: 2.5,
     description: 'Scores deal velocity and pipeline expansion opportunities directly against your internal CRM records with strict tenant isolation. No sales data trains external public LLMs.',
@@ -145,6 +171,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '06',
     title: 'GTM',
     role: 'GTM Agent',
+    serviceProvided: 'Confidential Launch & Pricing Optimization',
+    businessBenefit: 'Protects Trade Secrets & Partner Data',
     orbitIndex: 2,
     angleOffset: 4.1,
     description: 'Choreographs multi-regional product launches, pricing changes, and sales enablement within an encrypted, isolated boundary, preventing leaks of unreleased products.',
@@ -155,6 +183,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '07',
     title: 'FINANCE',
     role: 'AI Analyst',
+    serviceProvided: 'Encrypted Runway & ARR Expansion Modeling',
+    businessBenefit: 'Guaranteed Payroll & Financial Perimeter Isolation',
     orbitIndex: 0,
     angleOffset: 4.9,
     description: 'Forecasts cash runway, customer ARR expansion, and unit economics on encrypted ledgers. Payroll, revenue, and banking numbers never leave your private accounting perimeter.',
@@ -165,6 +195,8 @@ export const ENTERPRISE_AGENTS: AgentNode[] = [
     number: '08',
     title: 'TECHNOLOGY',
     role: 'AI Engineer',
+    serviceProvided: 'Private Code & Architecture Synthesis',
+    businessBenefit: 'Protects Proprietary IP & Core Algorithms',
     orbitIndex: 1,
     angleOffset: 5.7,
     description: 'Synthesizes clean microservice architectures and automated verification tests without ever exporting proprietary source code, credentials, or architecture diagrams to public cloud servers.',
@@ -923,10 +955,10 @@ export default function Brain3DAnimation() {
 
         <div className="arrow-switcher-label">
           <span className="switcher-step-idx">
-            {activeSet === 'datapilot' ? '01 / 02 · PLATFORM PURPOSE' : '02 / 02 · DATA PRIVACY'}
+            {activeSet === 'datapilot' ? '01 / 02 · SERVICES & ROI BENEFITS' : '02 / 02 · 100% PRIVATE ENCLAVE'}
           </span>
           <span className="switcher-title">
-            {activeSet === 'datapilot' ? 'Platform Purpose & Benefits' : 'Enterprise AI Team & Isolation'}
+            {activeSet === 'datapilot' ? 'Our AI Services & Business Benefits' : 'Enterprise Team Data Isolation'}
           </span>
         </div>
 
@@ -1016,7 +1048,7 @@ export default function Brain3DAnimation() {
         </button>
       </div>
 
-      {/* Projected 3D Agent Badges */}
+      {/* Projected 3D Agent Badges - Minimal Clean One-Liner Chips */}
       <div className="projected-nodes-overlay">
         {projectedNodes.map(({ node, x, y, scale, opacity, zIndex, inFront }) => {
           const isSelected = selectedAgent?.id === node.id
@@ -1052,14 +1084,14 @@ export default function Brain3DAnimation() {
               <div className="badge-content">
                 <span className="badge-number">{node.number}</span>
                 <span className="badge-title">{node.title}</span>
-                <span className="badge-role">{node.role}</span>
+                <span className="sr-only">{node.role}</span>
               </div>
             </div>
           )
         })}
       </div>
 
-      {/* Agent Detail Modal / Drawer */}
+      {/* Agent Detail Modal / Drawer with Services & Business Benefits */}
       {selectedAgent && (
         <div className="agent-detail-drawer" role="dialog" aria-modal="true">
           <div className="drawer-header">
@@ -1067,7 +1099,7 @@ export default function Brain3DAnimation() {
               <span className="badge-number">{selectedAgent.number}</span>
               <strong>{selectedAgent.title}</strong>
               <span className="drawer-mode-indicator">
-                {activeSet === 'datapilot' ? '• Platform Benefit' : '• Data Privacy Guarantee'}
+                {activeSet === 'datapilot' ? '• Service & Benefit' : '• Data Privacy Guarantee'}
               </span>
             </div>
             <button
@@ -1079,26 +1111,46 @@ export default function Brain3DAnimation() {
               ✕
             </button>
           </div>
-          <h4 className="drawer-role">{selectedAgent.role}</h4>
-          <p className="drawer-description">{selectedAgent.description}</p>
-          <div className="drawer-capabilities">
-            <span className="cap-label">
-              {activeSet === 'datapilot'
-                ? 'Key Platform Capabilities: Business Benefits'
-                : 'Key Platform Capabilities: Enterprise Data Privacy'}
-            </span>
-            <div className="drawer-assurance-pill">
-              {activeSet === 'datapilot' ? (
-                <span className="assurance-tag roi-tag">⚡ Autonomous ROI Acceleration · Sub-48h Launch</span>
-              ) : (
-                <span className="assurance-tag privacy-tag">🔒 100% In-VPC Boundary · Zero Cloud Data Egress</span>
-              )}
+
+          <div className="drawer-section-card service-card">
+            <div className="drawer-section-header">
+              <span className="drawer-section-kicker">SERVICE WE PROVIDE</span>
+              <span className="drawer-role">{selectedAgent.role}</span>
             </div>
-            <ul>
-              {selectedAgent.capabilities.map((cap, i) => (
-                <li key={i}>{cap}</li>
-              ))}
-            </ul>
+            <h4 className="drawer-service-name">
+              {selectedAgent.serviceProvided || selectedAgent.role}
+            </h4>
+            <p className="drawer-description">{selectedAgent.description}</p>
+          </div>
+
+          <div className="drawer-section-card benefit-card">
+            <span className="drawer-section-kicker">DIRECT BUSINESS BENEFIT</span>
+            {selectedAgent.businessBenefit && (
+              <div className="drawer-benefit-highlight-box">
+                <span className="benefit-bolt">⚡</span>
+                <span className="benefit-headline">{selectedAgent.businessBenefit}</span>
+              </div>
+            )}
+
+            <div className="drawer-capabilities">
+              <span className="cap-label">
+                {activeSet === 'datapilot'
+                  ? 'Key Platform Capabilities: Business Benefits'
+                  : 'Key Platform Capabilities: Enterprise Data Privacy'}
+              </span>
+              <div className="drawer-assurance-pill">
+                {activeSet === 'datapilot' ? (
+                  <span className="assurance-tag roi-tag">⚡ Autonomous ROI Acceleration · Sub-48h Launch</span>
+                ) : (
+                  <span className="assurance-tag privacy-tag">🔒 100% In-VPC Boundary · Zero Cloud Data Egress</span>
+                )}
+              </div>
+              <ul>
+                {selectedAgent.capabilities.map((cap, i) => (
+                  <li key={i}>{cap}</li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       )}

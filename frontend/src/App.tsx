@@ -371,13 +371,6 @@ function AppContent() {
               <div className="hero-ref-subline">
                 HOURLY CONSULTATION · NO PITCH · YOU KEEP THE ROADMAP
               </div>
-
-              {/* Reference-Style Bottom Status Strip */}
-              <div className="hero-ref-bottom-bar">
-                <span className="bottom-bracket-tag">[ 08 DEPARTMENTS ]</span>
-                <a href="#roi-calculator" className="bottom-scroll-tag">SCROLL ↓</a>
-                <span className="bottom-metrics-tag">127 JOBS OF WORK · MAPPED ACROSS 8 AGENTS · 100% PRIVATE</span>
-              </div>
             </div>
 
             {/* Right Column: 3D Swarm Animation with Minimal Arrow Switcher */}
@@ -410,16 +403,18 @@ function AppContent() {
             </div>
           </div>
 
-          {/* Enterprise Trust Strip */}
+          {/* Enterprise Trust & DPDP Compliance Strip */}
           <div className="enterprise-trust-strip">
-            <span className="trust-strip-label">TRUST & SECURITY:</span>
+            <span className="trust-strip-label">SOVEREIGNTY & COMPLIANCE:</span>
+            <span className="trust-pill highlight-trust-pill">DPDP Act 2023 Compliant</span>
+            <span className="trust-dot">•</span>
+            <span className="trust-pill">AES-256 GCM Encrypted</span>
+            <span className="trust-dot">•</span>
             <span className="trust-pill">SOC 2 Type II</span>
             <span className="trust-dot">•</span>
             <span className="trust-pill">HIPAA & GDPR</span>
             <span className="trust-dot">•</span>
-            <span className="trust-pill">FIPS 140-3 Cryptographic Core</span>
-            <span className="trust-dot">•</span>
-            <span className="trust-pill">Zero Egress</span>
+            <span className="trust-pill">100% In-VPC Boundary</span>
           </div>
         </section>
 
@@ -692,6 +687,169 @@ function AppContent() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Section: DPDP Act 2023 Compliance & Cryptographic Security */}
+        <section className="dpdp-compliance-section" id="dpdp-compliance">
+          <div className="section-header-centered">
+            <span className="eyebrow">DIGITAL PERSONAL DATA PROTECTION ACT · SOVEREIGNTY GUARANTEE</span>
+            <h2>How DaTaIcon Protects Your Enterprise Under DPDP Laws</h2>
+            <p className="section-subtitle">
+              Engineered ground-up to strictly comply with India&apos;s DPDP Act 2023. Every record is processed inside your sovereign private perimeter with zero cloud data egress and end-to-end cryptographic encryption.
+            </p>
+          </div>
+
+          <div className="dpdp-grid">
+            {/* Card 1: End-to-End Cryptography */}
+            <div className="dpdp-card">
+              <div className="dpdp-card-header">
+                <div className="dpdp-icon-box">
+                  <LockIcon size={20} color="#829F80" />
+                </div>
+                <span className="dpdp-law-tag">DPDP ACT SEC 8(5)</span>
+              </div>
+              <h3>Mandatory Reasonable Security Safeguards</h3>
+              <p>
+                Section 8(5) requires data fiduciaries to implement reasonable technical safeguards against unauthorized access or breaches. DaTaIcon encrypts all records, embeddings, and tensors at rest and in transit.
+              </p>
+              <ul className="dpdp-card-checklist">
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>AES-256-GCM Encryption At Rest:</strong> All intermediate datasets and model weights encrypted with customer KMS keys (BYOK).</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>TLS 1.3 Strict In Transit:</strong> Cryptographically verified mTLS tunnels between internal microservices.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Encrypted Memory Enclaves:</strong> Confidential compute execution protects RAM from hypervisor snooping.</span>
+                </li>
+              </ul>
+              <div className="dpdp-tech-footer">
+                <span className="tech-badge">AES-256-GCM</span>
+                <span className="tech-badge">TLS 1.3 Strict</span>
+                <span className="tech-badge">BYOK Key Custody</span>
+              </div>
+            </div>
+
+            {/* Card 2: Sovereign Localization & Zero Cross-Border Egress */}
+            <div className="dpdp-card">
+              <div className="dpdp-card-header">
+                <div className="dpdp-icon-box">
+                  <ShieldCheckIcon size={20} color="#829F80" />
+                </div>
+                <span className="dpdp-law-tag">DPDP ACT SEC 16</span>
+              </div>
+              <h3>Zero Cross-Border Data Transfer</h3>
+              <p>
+                Section 16 regulates personal data transfer outside sovereign territory. DaTaIcon deploys 100% inside your private Indian cloud or enterprise datacenter, ensuring zero records ever leave sovereign borders.
+              </p>
+              <ul className="dpdp-card-checklist">
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>100% In-VPC Boundary:</strong> Deployed in AWS India, Azure Central India, GCP Mumbai/Delhi, or on-prem.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Zero Foreign LLM API Calls:</strong> No customer data is piped to third-party offshore AI servers.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Sovereignty Guaranteed:</strong> Total insulation against extraterritorial data subpoenas.</span>
+                </li>
+              </ul>
+              <div className="dpdp-tech-footer">
+                <span className="tech-badge">100% In-VPC</span>
+                <span className="tech-badge">Zero API Egress</span>
+                <span className="tech-badge">Data Localization</span>
+              </div>
+            </div>
+
+            {/* Card 3: Purpose Limitation & Consent Integrity */}
+            <div className="dpdp-card">
+              <div className="dpdp-card-header">
+                <div className="dpdp-icon-box">
+                  <CpuIcon size={20} color="#829F80" />
+                </div>
+                <span className="dpdp-law-tag">DPDP ACT SEC 6 & 7</span>
+              </div>
+              <h3>Purpose Limitation & No Public Retraining</h3>
+              <p>
+                Under Section 6, data collected for a specified business purpose must never be diverted. DaTaIcon strictly fences model execution so your proprietary data never trains external or shared AI algorithms.
+              </p>
+              <ul className="dpdp-card-checklist">
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Single-Purpose Scoping:</strong> Data ingested for churn or pricing is strictly confined to that prediction pipeline.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Zero Model Leakage:</strong> Your enterprise data NEVER trains public foundation models or third-party tenants.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Role-Based Access Control (RBAC):</strong> Strict tenant-level permissions enforce authorized access only.</span>
+                </li>
+              </ul>
+              <div className="dpdp-tech-footer">
+                <span className="tech-badge">Purpose-Locked</span>
+                <span className="tech-badge">Zero Model Training</span>
+                <span className="tech-badge">Strict RBAC</span>
+              </div>
+            </div>
+
+            {/* Card 4: Differential Privacy & Ephemeral Erasure */}
+            <div className="dpdp-card">
+              <div className="dpdp-card-header">
+                <div className="dpdp-icon-box">
+                  <LayersIcon size={20} color="#829F80" />
+                </div>
+                <span className="dpdp-law-tag">DPDP SEC 8(7) & 3(C)</span>
+              </div>
+              <h3>Differential Privacy & Ephemeral Erasure</h3>
+              <p>
+                Section 8(7) mandates erasure of personal data once purpose is fulfilled, while Section 3(c) exempts irreversibly anonymized data. DaTaIcon executes mathematical privacy and auto-purges sandboxes.
+              </p>
+              <ul className="dpdp-card-checklist">
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Differential Privacy (ε=0.1):</strong> Mathematical Laplacian noise prevents re-identification of individual data principals.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Ephemeral Sandbox Purge:</strong> Training containers are automatically destroyed and memory wiped upon job completion.</span>
+                </li>
+                <li>
+                  <CheckIcon size={14} color="#829F80" />
+                  <span><strong>Right-to-Erasure Readiness:</strong> Turnkey pipelines allow instant anonymization of opted-out records.</span>
+                </li>
+              </ul>
+              <div className="dpdp-tech-footer">
+                <span className="tech-badge">ε=0.1 Diff Privacy</span>
+                <span className="tech-badge">Ephemeral Sandboxes</span>
+                <span className="tech-badge">Right to Erasure</span>
+              </div>
+            </div>
+          </div>
+
+          {/* DPDP Regulatory Audit Assurance Banner */}
+          <div className="dpdp-assurance-banner">
+            <div className="dpdp-assurance-left">
+              <ShieldCheckIcon size={24} color="#829F80" />
+              <div>
+                <strong>Turnkey Audit Proof for General Counsel & CISOs</strong>
+                <p>Every algorithm decision, data transformation, and model rollout generates immutable cryptographic hash logs for seamless Data Protection Board of India (DPBI) and CERT-In audits.</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn-primary btn-sm-action"
+              onClick={() => setCurrentPage('services')}
+            >
+              Inspect Security Architecture →
+            </button>
           </div>
         </section>
 
