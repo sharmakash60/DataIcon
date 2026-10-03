@@ -1,0 +1,113 @@
+name: datapilot-dev
+
+x-backend: &backend
+  image: datapilot-backend-dev
+  build:
+    context: .
+    dockerfile: infrastructure/backend.Dockerfile
+    target: production          # stop at the Python app stage; Nginx stage is for prod-only builds
+  environment:
+    DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-datapilot}:${POSTGRES_PASSWORD:-datapilot_dev_only}@postgres:5432/${POSTGRES_DB:-datapilot}
+    REDIS_URL: redis://redis:6379/0
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-datapilot}
+      POSTGRES_USER: ${POSTGRES_USER:-datapilot}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-datapilot_dev_only}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-16379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    <<: *backend
+    command: ["alembic", "upgrade", "head"]
+    volumes:
+      - ./backend/migrations:/workspace/backend/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backend:
+    <<: *backend
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend/app:/workspace/backend/app:ro
+      - ./backend/migrations:/workspace/backend/migrations:ro
+      - ./tests:/workspace/tests:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=10)"]
+      interval: 5s
+      timeout: 12s
+      start_period: 10s
+      retries: 12
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/frontend.Dockerfile
+    environment:
+      API_PROXY_TARGET: http://backend:8000
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend/src:/workspace/frontend/src:ro
+      - ./frontend/index.html:/workspace/frontend/index.html:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      start_period: 10s
+      retries: 12
+
+  backend-tests:
+    <<: *backend
+    profiles: ["test"]
+    command: ["pytest", "-v", "-p", "no:cacheprovider"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-datapilot}:${POSTGRES_PASSWORD:-datapilot_dev_only}@postgres:5432/${POSTGRES_DB:-datapilot}
+      REDIS_URL: redis://redis:6379/0
+      RUN_INTEGRATION: "1"
+    volumes:
+      - ./backend/app:/workspace/backend/app:ro
+      - ./backend/migrations:/workspace/backend/migrations:ro
+      - ./tests:/workspace/tests:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
