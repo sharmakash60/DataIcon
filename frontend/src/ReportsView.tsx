@@ -21,6 +21,8 @@ export const ReportsView: React.FC<Props> = ({
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProject, setSelectedProject] = useState<Project | null>(null)
   const [reports, setReports] = useState<SeniorReportSummary[]>([])
+  const [selectedExperimentId, setSelectedExperimentId] = useState<string | null>(null)
+  const [targetExperimentId, setTargetExperimentId] = useState<string | null>(null)
   const [activeReportId, setActiveReportId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -48,10 +50,13 @@ export const ReportsView: React.FC<Props> = ({
       if (!orgId || !selectedProject) return
       try {
         const exps = await api.getExperiments(orgId, selectedProject.id)
-        if (exps.items && exps.items.length > 0) {
-          const list = await api.getSeniorReports(orgId, selectedProject.id, exps.items[0].id)
+        const expList = Array.isArray(exps) ? exps : ((exps as any)?.items || [])
+        if (expList.length > 0) {
+          setSelectedExperimentId(expList[0].id)
+          const list = await api.getSeniorReports(orgId, selectedProject.id, expList[0].id)
           setReports(list)
         } else {
+          setSelectedExperimentId(null)
           setReports([])
         }
       } catch (err) {
@@ -61,12 +66,15 @@ export const ReportsView: React.FC<Props> = ({
     loadReportsForProj()
   }, [orgId, selectedProject])
 
-  if (activeReportId && selectedProject) {
+  if (activeReportId && selectedProject && targetExperimentId) {
     return (
       <SeniorReportView
         project={selectedProject}
-        experimentId="mock-exp"
-        onBack={() => setActiveReportId(null)}
+        experimentId={targetExperimentId}
+        onBack={() => {
+          setActiveReportId(null)
+          setTargetExperimentId(null)
+        }}
       />
     )
   }
@@ -86,7 +94,14 @@ export const ReportsView: React.FC<Props> = ({
           <button
             type="button"
             className="btn-primary"
-            onClick={() => setActiveReportId('new-report')}
+            onClick={() => {
+              if (!selectedExperimentId) {
+                alert('No experiments found for this project. Please run an AutoML experiment in the Experiments tab first.')
+                return
+              }
+              setTargetExperimentId(selectedExperimentId)
+              setActiveReportId('new-report')
+            }}
             style={{ fontSize: '0.85rem' }}
           >
             📄 Generate New Report
@@ -131,7 +146,14 @@ export const ReportsView: React.FC<Props> = ({
                   <button
                     type="button"
                     className="btn-secondary"
-                    onClick={() => setActiveReportId('new-report')}
+                    onClick={() => {
+                      if (!selectedExperimentId) {
+                        alert('No experiments found for this project. Please run an AutoML experiment in the Experiments tab first.')
+                        return
+                      }
+                      setTargetExperimentId(selectedExperimentId)
+                      setActiveReportId('new-report')
+                    }}
                     style={{ marginTop: '10px' }}
                   >
                     Generate Initial Report
@@ -166,7 +188,10 @@ export const ReportsView: React.FC<Props> = ({
                         <button
                           type="button"
                           className="btn-secondary btn-sm"
-                          onClick={() => setActiveReportId(r.id)}
+                          onClick={() => {
+                            setTargetExperimentId(r.experiment_id || selectedExperimentId)
+                            setActiveReportId(r.id)
+                          }}
                         >
                           View Report &rarr;
                         </button>

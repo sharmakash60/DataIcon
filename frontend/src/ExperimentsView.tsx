@@ -5,6 +5,7 @@ import ExperimentCompareView from './ExperimentCompareView'
 import ExplainabilityView from './ExplainabilityView'
 import SeniorReportView from './SeniorReportView'
 import DeploymentView from './DeploymentView'
+import { DaTaIconLogo } from './DaTaIconLogo'
 import { Permissions, type Experiment, type ExperimentDetail, type Project } from './types'
 
 interface Props {
@@ -46,11 +47,13 @@ export default function ExperimentsView({ project, onBack }: Props) {
     setError(null)
     try {
       const res = await api.getExperiments(orgId, project.id)
-      setExperiments(res.items)
-      if (res.items.length > 0 && !selectedExperimentId) {
-        setSelectedExperimentId(res.items[0].id)
+      const items = Array.isArray(res) ? res : ((res as any)?.items || [])
+      setExperiments(items)
+      if (items.length > 0 && !selectedExperimentId) {
+        setSelectedExperimentId(items[0].id)
       }
     } catch (err: unknown) {
+      setExperiments([])
       setError(err instanceof Error ? err.message : 'Failed to load experiments')
     } finally {
       setLoading(false)
@@ -93,9 +96,13 @@ export default function ExperimentsView({ project, onBack }: Props) {
 
       setLaunchModalOpen(false)
       setExpNameInput('')
-      await loadExperiments()
+      setExperiments((prev) => {
+        const exists = prev.some((e) => e.id === created.id)
+        return exists ? prev : [created, ...prev]
+      })
       setSelectedExperimentId(created.id)
       setExperimentDetail(created)
+      await loadExperiments()
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to launch experiment')
     } finally {
@@ -154,19 +161,46 @@ export default function ExperimentsView({ project, onBack }: Props) {
 
   return (
     <>
-    <div className="requirements-container">
-      {/* Top Header */}
-      <div className="requirements-header">
-        <div>
-          <button type="button" className="btn-secondary" onClick={onBack} style={{ marginBottom: '8px' }}>
-            ← Back to Projects
-          </button>
-          <h2>AutoML Experiments & Model Benchmarks</h2>
-          <div className="project-badge">
-            Project: <strong>{project.name}</strong> ({project.classification})
+    <div className="automl-workbench-container" style={{ padding: '24px', maxWidth: '1480px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      {/* Executive Enclave Header */}
+      <div
+        className="requirements-header"
+        style={{
+          background: 'linear-gradient(135deg, #0b1320 0%, #15232d 100%)',
+          padding: '20px 24px',
+          borderRadius: '14px',
+          border: '1px solid #1e293b',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.35)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '16px',
+        }}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={onBack}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', fontSize: '0.85rem' }}
+            >
+              ← Back to Projects
+            </button>
+            <DaTaIconLogo variant="horizontal" size={26} textColor="#ffffff" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+            <h2 style={{ margin: 0, color: '#f8fafc', fontSize: '1.45rem', fontWeight: 700 }}>
+              AutoML Experiments & Model Benchmarks
+            </h2>
+            <div className="project-badge" style={{ color: '#94a3b8', fontSize: '0.88rem' }}>
+              Project: <strong style={{ color: '#f8fafc' }}>{project.name}</strong> ({project.classification.toUpperCase()})
+            </div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {selectedExperimentId && (
             <>
               {canViewReports && (
@@ -175,8 +209,8 @@ export default function ExperimentsView({ project, onBack }: Props) {
                   className="btn-secondary"
                   id="open-senior-report-btn"
                   onClick={() => setReportOpen(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#10b981', color: '#10b981' }}
-                  title="Generate & View 18-Section Senior Data Scientist Report"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.1)', borderColor: '#10b981', color: '#34d399' }}
+                  title="Generate & View 23-Section Senior Data Scientist Report"
                 >
                   📄 Senior DS Report
                 </button>
@@ -187,7 +221,7 @@ export default function ExperimentsView({ project, onBack }: Props) {
                   className="btn-secondary"
                   id="open-explainability-btn"
                   onClick={() => setExplainabilityOpen(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#38bdf8', color: '#38bdf8' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.1)', borderColor: '#38bdf8', color: '#38bdf8' }}
                   title="Inspect SHAP values, Permutation Importance, and Diagnostics"
                 >
                   🔍 Explainability & SHAP
@@ -199,7 +233,7 @@ export default function ExperimentsView({ project, onBack }: Props) {
                   className="btn-secondary"
                   id="open-deploy-btn"
                   onClick={() => setDeploymentOpen(true)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', borderColor: '#f59e0b', color: '#f59e0b' }}
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(245, 158, 11, 0.1)', borderColor: '#f59e0b', color: '#fbbf24' }}
                   title="Deploy & Serve Model via Local / Docker Prediction API"
                 >
                   🚀 Deploy Model
@@ -213,13 +247,21 @@ export default function ExperimentsView({ project, onBack }: Props) {
               className="btn-primary"
               id="run-experiment-btn"
               onClick={() => setLaunchModalOpen(true)}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#059669', borderColor: '#10b981' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)',
+                borderColor: '#10b981',
+                fontWeight: 700,
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)',
+              }}
               title="Launch V1 DataPilot AutoML Experiment inside Client Data Plane"
             >
               ▶️ Run Experiment
             </button>
           )}
-          {experiments.length >= 2 && canCompare && (
+          {(experiments?.length ?? 0) >= 2 && canCompare && (
             <button
               type="button"
               className="btn-primary"
@@ -233,12 +275,12 @@ export default function ExperimentsView({ project, onBack }: Props) {
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '8px 14px',
+            padding: '7px 12px',
             background: 'rgba(16, 185, 129, 0.1)',
-            border: '1px solid #10b981',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
             borderRadius: '8px',
-            color: '#10b981',
-            fontSize: '0.85rem',
+            color: '#34d399',
+            fontSize: '0.8rem',
             fontWeight: 600,
           }}>
             <span>🛡️ Client Data Plane: Zero Raw Data Leakage</span>
@@ -246,63 +288,102 @@ export default function ExperimentsView({ project, onBack }: Props) {
         </div>
       </div>
 
-      {error && <div className="error-banner">{error}</div>}
+      {error && <div className="error-banner" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#fca5a5', padding: '12px 16px', borderRadius: '8px' }}>{error}</div>}
 
       {/* Main Grid: Experiment List on Left, Details & Leaderboard on Right */}
-      <div className="requirements-grid">
+      <div className="requirements-grid" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: '20px', alignItems: 'start' }}>
         {/* Left Column: Experiments List */}
-        <div className="requirements-form-card" style={{ maxWidth: '340px' }}>
-          <h3>Experiments ({experiments.length})</h3>
-          <p className="helper-text">
+        <div
+          className="requirements-form-card"
+          style={{
+            background: '#0f172a',
+            border: '1px solid #1e293b',
+            borderRadius: '12px',
+            padding: '20px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <h3 style={{ margin: 0, color: '#f8fafc', fontSize: '1.1rem', fontWeight: 700 }}>
+              Experiments ({experiments?.length ?? 0})
+            </h3>
+            {canRunExperiment && (
+              <button
+                type="button"
+                className="btn-secondary btn-sm"
+                onClick={() => setLaunchModalOpen(true)}
+                style={{ fontSize: '0.75rem', padding: '3px 8px' }}
+              >
+                + Run New
+              </button>
+            )}
+          </div>
+          <p className="helper-text" style={{ margin: '0 0 16px 0', color: '#94a3b8', fontSize: '0.8rem', lineHeight: '1.4' }}>
             Runs executed securely inside your local Client Data Plane.
           </p>
 
           {loading ? (
-            <div className="loading-state">Loading experiments...</div>
-          ) : experiments.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '30px 10px', color: '#64748b' }}>
-              <p>No experiments recorded yet.</p>
-              <p style={{ fontSize: '0.8rem', marginTop: '6px' }}>
+            <div className="loading-state" style={{ color: '#94a3b8', textAlign: 'center', padding: '30px 0' }}>Loading experiments...</div>
+          ) : (experiments?.length ?? 0) === 0 ? (
+            <div style={{ textAlign: 'center', padding: '36px 14px', color: '#64748b', background: '#15202e', borderRadius: '8px', border: '1px dashed #334155' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔬</div>
+              <p style={{ margin: 0, fontWeight: 600, color: '#cbd5e1' }}>No experiments recorded yet.</p>
+              <p style={{ fontSize: '0.8rem', marginTop: '6px', color: '#94a3b8', lineHeight: '1.5' }}>
                 Run the local Client Data Agent AutoML engine to benchmark models.
               </p>
+              {canRunExperiment && (
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => setLaunchModalOpen(true)}
+                  style={{ marginTop: '14px', width: '100%', fontSize: '0.85rem' }}
+                >
+                  ⚡ Run Initial Benchmark
+                </button>
+              )}
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-              {experiments.map((exp) => {
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {experiments?.map((exp) => {
                 const isSelected = exp.id === selectedExperimentId
                 return (
                   <div
                     key={exp.id}
                     onClick={() => setSelectedExperimentId(exp.id)}
                     style={{
-                      padding: '12px',
-                      borderRadius: '8px',
-                      border: isSelected ? '1px solid #3b82f6' : '1px solid #334155',
-                      background: isSelected ? 'rgba(59, 130, 246, 0.1)' : '#1e293b',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      border: isSelected ? '1px solid #38bdf8' : '1px solid #1e293b',
+                      background: isSelected ? 'rgba(56, 189, 248, 0.08)' : '#15202e',
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
+                      boxShadow: isSelected ? '0 0 12px rgba(56, 189, 248, 0.15)' : 'none',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#f8fafc', fontSize: '0.95rem' }}>{exp.name}</strong>
+                      <strong style={{ color: isSelected ? '#38bdf8' : '#f8fafc', fontSize: '0.92rem' }}>
+                        {exp.name}
+                      </strong>
                       <span
                         style={{
                           fontSize: '0.7rem',
-                          padding: '2px 6px',
+                          fontWeight: 700,
+                          padding: '2px 7px',
                           borderRadius: '4px',
-                          background: exp.status === 'completed' ? '#065f46' : '#854d0e',
-                          color: '#fff',
+                          background: exp.status === 'completed' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)',
+                          color: exp.status === 'completed' ? '#34d399' : '#fbbf24',
+                          border: exp.status === 'completed' ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
                         }}
                       >
-                        {exp.status}
+                        {exp.status.toUpperCase()}
                       </span>
                     </div>
-                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '4px' }}>
-                      {exp.problem_type.replace('_', ' ')} · Target: {exp.target_name}
+                    <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '6px' }}>
+                      {exp.problem_type.replace('_', ' ')} · Target: <code style={{ color: '#e2e8f0', background: 'rgba(255,255,255,0.06)', padding: '1px 4px', borderRadius: '3px' }}>{exp.target_name}</code>
                     </div>
                     {exp.best_model_name && (
-                      <div style={{ fontSize: '0.8rem', color: '#10b981', marginTop: '4px' }}>
-                        Best: <strong>{exp.best_model_name}</strong> ({exp.primary_metric}: {formatNumber(exp.best_score)})
+                      <div style={{ fontSize: '0.8rem', color: '#34d399', marginTop: '6px', fontWeight: 600 }}>
+                        🏆 Best: {exp.best_model_name} <span style={{ color: '#94a3b8', fontWeight: 400 }}>({exp.primary_metric}: <strong style={{ color: '#38bdf8' }}>{formatNumber(exp.best_score)}</strong>)</span>
                       </div>
                     )}
                   </div>
@@ -313,7 +394,16 @@ export default function ExperimentsView({ project, onBack }: Props) {
         </div>
 
         {/* Right Column: Experiment Leaderboard & Runs */}
-        <div className="requirements-history-card">
+        <div
+          className="requirements-history-card"
+          style={{
+            background: '#0f172a',
+            border: '1px solid #1e293b',
+            borderRadius: '12px',
+            padding: '24px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
+          }}
+        >
           {detailLoading ? (
             <div className="loading-state">Loading experiment benchmarks...</div>
           ) : !experimentDetail ? (

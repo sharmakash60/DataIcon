@@ -86,10 +86,36 @@ export default function DashboardShell() {
   const role = activeOrg?.role || 'viewer'
 
   const navItems = getAuthorizedNavigation(role, hasPermission)
-  const [activeTab, setActiveTab] = useState<string>('dashboard')
+
+  const getInitialTab = (): string => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase()
+      const search = window.location.search.toLowerCase()
+      const hash = window.location.hash.toLowerCase()
+      if (
+        path.includes('analysis') ||
+        path.includes('analytic') ||
+        search.includes('analysis') ||
+        search.includes('analytic') ||
+        hash.includes('analysis') ||
+        hash.includes('analytic')
+      ) {
+        return 'analysis'
+      }
+      if (path.includes('health') || search.includes('health') || hash.includes('health')) {
+        return 'health'
+      }
+    }
+    return 'dashboard'
+  }
+
+  const [activeTab, setActiveTab] = useState<string>(getInitialTab)
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
+  const [hubExperiments, setHubExperiments] = useState<any[]>([])
+  const [selectedHubExpId, setSelectedHubExpId] = useState<string>('')
+  const [loadingHubExps, setLoadingHubExps] = useState(false)
 
   // Load organization projects for hub selectors
   useEffect(() => {
@@ -107,6 +133,33 @@ export default function DashboardShell() {
     }
     loadProjects()
   }, [orgId, role])
+
+  // Load experiments for active hub tabs (deployments, explainability)
+  useEffect(() => {
+    async function loadHubExps() {
+      const activeProjId = selectedProjectId || (projects[0]?.id)
+      if (!orgId || !activeProjId) return
+      setLoadingHubExps(true)
+      try {
+        const res = await api.getExperiments(orgId, activeProjId)
+        const items = Array.isArray(res) ? res : ((res as any)?.items || [])
+        setHubExperiments(items)
+        if (items.length > 0) {
+          setSelectedHubExpId(items[0].id)
+        } else {
+          setSelectedHubExpId('')
+        }
+      } catch {
+        setHubExperiments([])
+        setSelectedHubExpId('')
+      } finally {
+        setLoadingHubExps(false)
+      }
+    }
+    if (activeTab === 'deployments' || activeTab === 'explainability') {
+      loadHubExps()
+    }
+  }, [orgId, selectedProjectId, projects, activeTab])
 
   // Ensure activeTab is always one of the authorized items
   useEffect(() => {
@@ -173,8 +226,69 @@ export default function DashboardShell() {
         </div>
 
         <div className="header-right">
-          <span className="environment">LOCAL DEVELOPMENT</span>
+          <div className="header-search-pill">
+            <span style={{ fontSize: '14px', color: '#94a3b8' }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Search anything..."
+              aria-label="Global search"
+            />
+          </div>
+
+          <button
+            type="button"
+            className="btn-primary"
+            style={{
+              borderRadius: '9999px',
+              padding: '8px 20px',
+              background: '#181c20',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 600,
+              fontSize: '13px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+            }}
+            onClick={() => setActiveTab('projects')}
+          >
+            Create
+          </button>
+
+          <button
+            type="button"
+            className="round-icon-btn"
+            title="Notifications"
+            aria-label="Notifications"
+          >
+            🔔
+          </button>
+
+          <button
+            type="button"
+            className="round-icon-btn"
+            title="Messages & Activity"
+            aria-label="Messages & Activity"
+            onClick={() => setActiveTab('audit')}
+          >
+            💬
+          </button>
+
           <div className="user-profile-menu">
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: '#181c20',
+                color: '#ffffff',
+                display: 'grid',
+                placeItems: 'center',
+                fontWeight: 700,
+                fontSize: '13px',
+                border: '2px solid #e5e7eb',
+              }}
+            >
+              {user?.display_name ? user.display_name.charAt(0).toUpperCase() : 'U'}
+            </div>
             <div className="user-info">
               <span className="user-name">{user?.display_name}</span>
               <span className="user-email">{user?.email}</span>
@@ -209,6 +323,15 @@ export default function DashboardShell() {
             <div className="nav-separator" />
 
             <button
+              className={`nav-item ${activeTab === 'analysis' ? 'active' : ''}`}
+              id="nav-analysis-tab"
+              onClick={() => setActiveTab('analysis')}
+            >
+              <span className="nav-icon">📈</span>
+              <span>Analytics Console</span>
+            </button>
+
+            <button
               className={`nav-item ${activeTab === 'health' ? 'active' : ''}`}
               id="nav-health-tab"
               onClick={() => setActiveTab('health')}
@@ -224,6 +347,39 @@ export default function DashboardShell() {
               <p className="pro-card-desc">Zero-knowledge customer runtime boundary active.</p>
               <span className="pro-status-badge">SOC-2 / HIPAA Verified</span>
             </div>
+
+            {/* Bottom Capsule Icon Controls (Image 1 Style) */}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '12px', alignItems: 'center', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="round-icon-btn"
+                title="Security Stream"
+                aria-label="Security Stream"
+                style={{ width: '34px', height: '34px', fontSize: '13px' }}
+                onClick={() => setActiveTab('audit')}
+              >
+                💬
+              </button>
+              <button
+                type="button"
+                className="round-icon-btn"
+                title="Enclave Security Mode"
+                aria-label="Enclave Security Mode"
+                style={{ width: '34px', height: '34px', fontSize: '13px' }}
+              >
+                🌙
+              </button>
+              <button
+                type="button"
+                className="round-icon-btn"
+                title="System Health"
+                aria-label="System Health"
+                style={{ width: '34px', height: '34px', fontSize: '13px' }}
+                onClick={() => setActiveTab('health')}
+              >
+                ⚡
+              </button>
+            </div>
           </nav>
         </aside>
 
@@ -237,7 +393,14 @@ export default function DashboardShell() {
           {activeTab === 'members' && <TeamView />}
 
           {/* Projects / Accessible Projects */}
-          {activeTab === 'projects' && <ProjectsView />}
+          {activeTab === 'projects' && (
+            <ProjectsView
+              onNavigateTab={(tab, projId) => {
+                if (projId) setSelectedProjectId(projId)
+                setActiveTab(tab)
+              }}
+            />
+          )}
 
           {/* Datasets */}
           {activeTab === 'datasets' && <DatasetsView />}
@@ -276,25 +439,67 @@ export default function DashboardShell() {
           {activeTab === 'deployments' && (
             currentProject ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {projects.length > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Select Project:</span>
-                    <select
-                      value={currentProject.id}
-                      onChange={(e) => setSelectedProjectId(e.target.value)}
-                      style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
-                    >
-                      {projects.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.classification})</option>
-                      ))}
-                    </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  {projects.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Project:</span>
+                      <select
+                        value={currentProject.id}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
+                      >
+                        {projects.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.classification})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {hubExperiments.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Experiment:</span>
+                      <select
+                        value={selectedHubExpId}
+                        onChange={(e) => setSelectedHubExpId(e.target.value)}
+                        style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
+                      >
+                        {hubExperiments.map((exp) => (
+                          <option key={exp.id} value={exp.id}>
+                            {exp.name} ({exp.best_model_name || 'Model'} · {exp.primary_metric} {(exp.best_score ?? 0).toFixed(4)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {loadingHubExps ? (
+                  <div className="card" style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>
+                    Loading project experiments...
                   </div>
+                ) : hubExperiments.length === 0 ? (
+                  <div className="card" style={{ padding: '40px 24px', textAlign: 'center', background: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🚀</div>
+                    <h3 style={{ color: '#f8fafc', fontSize: '1.25rem', marginBottom: '8px' }}>No Experiments Found for This Project</h3>
+                    <p style={{ color: '#94a3b8', maxWidth: '540px', margin: '0 auto 20px auto', fontSize: '0.92rem', lineHeight: '1.6' }}>
+                      Production model deployments require an empirical AutoML benchmark run. Run an experiment on the <strong>{currentProject.name}</strong> dataset to build and deploy serving bundles.
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => setActiveTab('experiments')}
+                      style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      ⚡ Go to Experiments Hub
+                    </button>
+                  </div>
+                ) : (
+                  <DeploymentView
+                    project={currentProject}
+                    experimentId={selectedHubExpId || hubExperiments[0].id}
+                    onBack={() => setActiveTab('projects')}
+                  />
                 )}
-                <DeploymentView
-                  project={currentProject}
-                  experimentId="default"
-                  onBack={() => setActiveTab('projects')}
-                />
               </div>
             ) : (
               <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
@@ -312,25 +517,67 @@ export default function DashboardShell() {
           {activeTab === 'explainability' && (
             currentProject ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {projects.length > 1 && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Select Project:</span>
-                    <select
-                      value={currentProject.id}
-                      onChange={(e) => setSelectedProjectId(e.target.value)}
-                      style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
-                    >
-                      {projects.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name} ({p.classification})</option>
-                      ))}
-                    </select>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                  {projects.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Project:</span>
+                      <select
+                        value={currentProject.id}
+                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
+                      >
+                        {projects.map((p) => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.classification})</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {hubExperiments.length > 1 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontSize: '0.9rem', color: '#94a3b8' }}>Experiment:</span>
+                      <select
+                        value={selectedHubExpId}
+                        onChange={(e) => setSelectedHubExpId(e.target.value)}
+                        style={{ padding: '8px 12px', background: '#1e293b', border: '1px solid #334155', borderRadius: '6px', color: '#f8fafc' }}
+                      >
+                        {hubExperiments.map((exp) => (
+                          <option key={exp.id} value={exp.id}>
+                            {exp.name} ({exp.best_model_name || 'Model'} · {exp.primary_metric} {(exp.best_score ?? 0).toFixed(4)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {loadingHubExps ? (
+                  <div className="card" style={{ padding: '30px', textAlign: 'center', color: '#94a3b8' }}>
+                    Loading project experiments...
                   </div>
+                ) : hubExperiments.length === 0 ? (
+                  <div className="card" style={{ padding: '40px 24px', textAlign: 'center', background: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🔍</div>
+                    <h3 style={{ color: '#f8fafc', fontSize: '1.25rem', marginBottom: '8px' }}>No Experiments Found for This Project</h3>
+                    <p style={{ color: '#94a3b8', maxWidth: '540px', margin: '0 auto 20px auto', fontSize: '0.92rem', lineHeight: '1.6' }}>
+                      Model explainability, SHAP feature attributions, and what-if simulations are computed on benchmarked model runs. Run an AutoML experiment on <strong>{currentProject.name}</strong> to inspect predictions.
+                    </p>
+                    <button
+                      type="button"
+                      className="btn-primary"
+                      onClick={() => setActiveTab('experiments')}
+                      style={{ margin: '0 auto', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                    >
+                      ⚡ Go to Experiments Hub
+                    </button>
+                  </div>
+                ) : (
+                  <ExplainabilityView
+                    project={currentProject}
+                    experimentId={selectedHubExpId || hubExperiments[0].id}
+                    onBack={() => setActiveTab('experiments')}
+                  />
                 )}
-                <ExplainabilityView
-                  project={currentProject}
-                  experimentId="default"
-                  onBack={() => setActiveTab('experiments')}
-                />
               </div>
             ) : (
               <div className="card" style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
@@ -340,7 +587,9 @@ export default function DashboardShell() {
           )}
 
           {/* Analysis */}
-          {activeTab === 'analysis' && <AnalysisView />}
+          {activeTab === 'analysis' && (
+            <AnalysisView onBack={() => setActiveTab('dashboard')} />
+          )}
 
           {/* Reports / Approved Reports / Security Reports */}
           {activeTab === 'reports' && (

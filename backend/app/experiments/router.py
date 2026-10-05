@@ -1025,9 +1025,11 @@ def compare_experiments(
     top_recommended = sorted_exps[0] if sorted_exps else None
     recommendation_summary = None
     if top_recommended:
-        p_metric = top_recommended["primary_metric"]
-        p_score = top_recommended["metrics"].get(p_metric.lower(), top_recommended.get("best_score", 0.0))
-        b_score = top_recommended.get("baseline_score", 0.0)
+        p_metric = top_recommended.get("primary_metric") or "roc_auc"
+        p_score = (top_recommended["metrics"].get(p_metric.lower()) if top_recommended.get("metrics") else None)
+        if p_score is None:
+            p_score = top_recommended.get("best_score") or 0.0
+        b_score = top_recommended.get("baseline_score") or 0.0
         lift = ((p_score - b_score) / abs(b_score) * 100) if b_score and abs(b_score) > 1e-5 else 0.0
         recommendation_summary = {
             "recommended_experiment_id": str(top_recommended["id"]),

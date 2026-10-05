@@ -53,9 +53,11 @@ export const MonitoringDashboardView: React.FC<MonitoringDashboardViewProps> = (
         api.getMonitoringSnapshots(orgId, projectId, deployment.id),
         api.getMonitoringAlerts(orgId, projectId, deployment.id, { unresolvedOnly }),
       ])
-      setSnapshots(snapRes.items)
-      setAlerts(alertRes.items)
+      setSnapshots(snapRes?.items || [])
+      setAlerts(alertRes?.items || [])
     } catch (err: unknown) {
+      setSnapshots([])
+      setAlerts([])
       setError(err instanceof Error ? err.message : 'Failed to load monitoring data')
     } finally {
       setLoading(false)

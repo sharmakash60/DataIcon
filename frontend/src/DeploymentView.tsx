@@ -75,13 +75,15 @@ export const DeploymentView: React.FC<DeploymentViewProps> = ({
     setError(null)
     try {
       const res = await api.getExperimentDeployments(orgId, project.id, experimentId)
-      setDeployments(res.items)
-      if (res.items.length > 0) {
-        await loadDeploymentDetail(res.items[0].id)
+      const items = res?.items || []
+      setDeployments(items)
+      if (items.length > 0) {
+        await loadDeploymentDetail(items[0].id)
       } else {
         setSelectedDeployment(null)
       }
     } catch (err: unknown) {
+      setDeployments([])
       setError(err instanceof Error ? err.message : 'Failed to load deployments')
     } finally {
       setLoading(false)

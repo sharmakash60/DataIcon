@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AuthProvider, useAuth } from './AuthContext'
 import Brain3DAnimation from './Brain3DAnimation'
 import DashboardShell from './DashboardShell'
@@ -6,6 +6,7 @@ import PublicLoginPage from './PublicLoginPage'
 import PublicServicesPage from './PublicServicesPage'
 import SystemHealthView from './SystemHealthView'
 import { DaTaIconLogo, DaTaIconEmblem } from './DaTaIconLogo'
+import { AnalysisView } from './AnalysisView'
 import {
   ShieldCheckIcon,
   CpuIcon,
@@ -19,7 +20,7 @@ import {
   TerminalIcon
 } from './icons'
 
-type PublicPage = 'home' | 'services' | 'login'
+type PublicPage = 'home' | 'services' | 'login' | 'analysis'
 
 interface WorkflowStage {
   step: string
@@ -179,12 +180,80 @@ const SERVICE_PILLARS = [
 
 function AppContent() {
   const { user, loading } = useAuth()
-  const [currentPage, setCurrentPage] = useState<PublicPage>('home')
+
+  const getInitialPage = (): PublicPage => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase()
+      const search = window.location.search.toLowerCase()
+      const hash = window.location.hash.toLowerCase()
+      if (
+        hash.includes('roi-calculator') ||
+        hash.includes('roi') ||
+        search.includes('roi-calculator')
+      ) {
+        return 'home'
+      }
+      if (
+        path.includes('analysis') ||
+        path.includes('analytic') ||
+        search.includes('analysis') ||
+        search.includes('analytic') ||
+        hash.includes('analysis') ||
+        hash.includes('analytic')
+      ) {
+        return 'analysis'
+      }
+      if (path.includes('login') || search.includes('login') || hash.includes('login')) {
+        return 'login'
+      }
+      if (path.includes('services') || search.includes('services') || hash.includes('services')) {
+        return 'services'
+      }
+    }
+    return 'home'
+  }
+
+  const [currentPage, setCurrentPage] = useState<PublicPage>(getInitialPage)
   const [activeWorkflowStage, setActiveWorkflowStage] = useState<WorkflowStage>(WORKFLOW_STAGES[0])
   const [selectedPillarId, setSelectedPillarId] = useState<string>('airgap')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('fintech')
   const [annualSpend, setAnnualSpend] = useState<number>(650000)
   const [radarPingCount, setRadarPingCount] = useState<number>(142)
+
+  // Listen to hash changes and smooth-scroll to #roi-calculator
+  useEffect(() => {
+    const handleHash = () => {
+      if (typeof window === 'undefined') return
+      const hash = window.location.hash.toLowerCase()
+      if (hash.includes('roi-calculator') || hash.includes('roi')) {
+        setCurrentPage('home')
+        setTimeout(() => {
+          document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })
+        }, 120)
+      } else if (hash.includes('login')) {
+        setCurrentPage('login')
+      } else if (hash.includes('analysis') || hash.includes('analytic')) {
+        setCurrentPage('analysis')
+      } else if (hash.includes('services')) {
+        setCurrentPage('services')
+      }
+    }
+    window.addEventListener('hashchange', handleHash)
+    return () => window.removeEventListener('hashchange', handleHash)
+  }, [])
+
+  // Auto-scroll on initial mount if #roi-calculator is present
+  useEffect(() => {
+    if (currentPage === 'home' && typeof window !== 'undefined') {
+      const hash = window.location.hash.toLowerCase()
+      if (hash.includes('roi-calculator') || hash.includes('roi')) {
+        const timer = setTimeout(() => {
+          document.getElementById('roi-calculator')?.scrollIntoView({ behavior: 'smooth' })
+        }, 150)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [currentPage])
 
   if (loading) {
     return (
@@ -197,6 +266,16 @@ function AppContent() {
 
   if (user) {
     return <DashboardShell />
+  }
+
+  // Redirect unauthenticated attempts to access analytics console directly to login
+  if (currentPage === 'analysis') {
+    return (
+      <PublicLoginPage
+        onNavigateHome={() => setCurrentPage('home')}
+        onNavigateServices={() => setCurrentPage('services')}
+      />
+    )
   }
 
   // Render Dedicated Login Page

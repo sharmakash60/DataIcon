@@ -134,9 +134,20 @@ export async function apiRequest<T>(
         response = await fetch(path, { ...options, headers })
       } else {
         clearStoredAuth()
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+        }
       }
     } catch {
       clearStoredAuth()
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'))
+      }
+    }
+  } else if (response.status === 401 && !path.includes('/auth/login')) {
+    clearStoredAuth()
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'))
     }
   }
 

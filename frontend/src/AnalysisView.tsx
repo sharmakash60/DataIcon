@@ -3,10 +3,20 @@ import { api } from './api'
 import { useAuth } from './AuthContext'
 import { PermissionGate } from './PermissionGate'
 import { Permissions, type Project } from './types'
+import {
+  motionTheme,
+  getPresetCssTransition,
+  generateSpringCurvePoints,
+  type MotionPresetKey,
+} from './motion.theme'
 
 export type AnalysisViewMode = 'analytics' | 'hardware'
 
-export const AnalysisView: React.FC = () => {
+export interface AnalysisViewProps {
+  onBack?: () => void
+}
+
+export const AnalysisView: React.FC<AnalysisViewProps> = ({ onBack }) => {
   const { activeOrg, user } = useAuth()
   const orgId = activeOrg?.organization_id
 
@@ -18,6 +28,11 @@ export const AnalysisView: React.FC = () => {
   const [showBriefBanner, setShowBriefBanner] = useState(true)
   const [activeCircuitPulse, setActiveCircuitPulse] = useState(false)
   const [selectedModule, setSelectedModule] = useState<string | null>('vector-core')
+
+  // Physics-backed Motion Theme Preset State
+  const [motionPreset, setMotionPreset] = useState<MotionPresetKey>('ambient')
+  const [showMotionInspector, setShowMotionInspector] = useState(true)
+  const [chartKey, setChartKey] = useState(0)
 
   // Hover state for interactive multi-line chart
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number | null>(null)
@@ -74,6 +89,29 @@ export const AnalysisView: React.FC = () => {
       {/* Top Filter & Toolbar Bar */}
       <div className="analysis-top-nav">
         <div className="top-nav-left">
+          {onBack && (
+            <button
+              type="button"
+              className="btn-back"
+              id="back-to-dashboard-btn"
+              onClick={onBack}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '8px 14px',
+                borderRadius: '8px',
+                border: '1px solid #dce2d8',
+                background: '#ffffff',
+                color: '#174e3f',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ← Back to Dashboard
+            </button>
+          )}
+
           {/* Site / Project Selector */}
           <div className="site-selector-dropdown">
             <span className="dropdown-label-bold">All models & sites</span>
@@ -178,6 +216,109 @@ export const AnalysisView: React.FC = () => {
          ===================================================================== */}
       {viewMode === 'analytics' && (
         <div className="analytics-dashboard-content">
+          {/* Motion Theme & Spring Physics Presets Toolbar (from motion.theme.ts) */}
+          <div className="motion-theme-toolbar">
+            <div className="motion-theme-left">
+              <span className="motion-eyebrow">&gt; THEME &middot; TRANSITIONS</span>
+              <strong className="motion-title">Consistent, customisable motion</strong>
+              <p className="motion-desc">
+                Every transition resolves from <code style={{ color: '#fbbf24', background: '#111827', padding: '1px 5px', borderRadius: '4px' }}>motion.theme.ts</code>. Tuning happens across physics presets.
+              </p>
+            </div>
+
+            <div className="motion-presets-row" role="tablist" aria-label="Motion presets">
+              {(['snap', 'ui', 'gentle', 'lively', 'ambient'] as MotionPresetKey[]).map((p) => {
+                const cfg = motionTheme.transitions[p]
+                const isActive = motionPreset === p
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    className={`motion-preset-pill ${isActive ? 'active' : ''}`}
+                    onClick={() => {
+                      setMotionPreset(p)
+                      setChartKey((k) => k + 1)
+                    }}
+                    title={`Stiffness: ${cfg.stiffness}, Damping: ${cfg.damping}`}
+                    role="tab"
+                    aria-selected={isActive}
+                  >
+                    {p.toUpperCase()}
+                  </button>
+                )
+              })}
+            </div>
+
+            <button
+              type="button"
+              className="btn-toggle-inspector"
+              onClick={() => setShowMotionInspector(!showMotionInspector)}
+            >
+              {showMotionInspector ? 'Hide Physics Curve ✕' : 'Inspect Physics X(T) ⚙'}
+            </button>
+          </div>
+
+          {/* Interactive Spring Physics Oscilloscope Inspector */}
+          {showMotionInspector && (
+            <div className="motion-inspector-card">
+              <div>
+                <div className="motion-inspector-header">
+                  <span className="inspector-formula">&gt; X(T)</span>
+                  <span className="inspector-preset-tag">
+                    {motionPreset.toUpperCase()} K {motionTheme.transitions[motionPreset].stiffness} - C {motionTheme.transitions[motionPreset].damping}
+                  </span>
+                </div>
+                <div style={{ fontSize: '11px', color: '#94a3b8', marginBottom: '8px' }}>
+                  Background loops: pulses, sweeps, blinks.
+                </div>
+                <div className="inspector-curve-container">
+                  <svg viewBox="0 0 320 80" className="spring-curve-svg">
+                    <line x1="0" y1="20" x2="320" y2="20" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="45" x2="320" y2="45" stroke="#1e293b" strokeDasharray="3 3" />
+                    <line x1="0" y1="70" x2="320" y2="70" stroke="#334155" />
+                    <text x="6" y="16" fill="#64748b" fontSize="8">1.5</text>
+                    <text x="6" y="42" fill="#64748b" fontSize="8">1.0</text>
+                    <text x="6" y="68" fill="#64748b" fontSize="8">0</text>
+                    {/* Active spring trajectory polyline */}
+                    <polyline
+                      key={`curve-${chartKey}`}
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="2.5"
+                      points={generateSpringCurvePoints(
+                        motionTheme.transitions[motionPreset].stiffness,
+                        motionTheme.transitions[motionPreset].damping,
+                        310,
+                        70
+                      )}
+                    />
+                  </svg>
+                </div>
+              </div>
+
+              <div className="motion-travel-bar">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span className="travel-label">TRAVEL &plusmn;206PX</span>
+                  <span style={{ fontSize: '11px', color: '#fbbf24', fontFamily: 'monospace' }}>
+                    stagger: {motionTheme.stagger.base}s &middot; hover: {motionTheme.travel.hover}px
+                  </span>
+                </div>
+                <div className="travel-track">
+                  <div
+                    className="travel-thumb"
+                    key={`thumb-${chartKey}`}
+                    style={{
+                      animation: `springSlide ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
+                  Timing approximation: <code>{getPresetCssTransition(motionPreset).duration} {getPresetCssTransition(motionPreset).timingFunction}</code>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Top 4 KPI Metric Cards with Sparklines */}
           <div className="kpi-sparkline-grid">
             {/* Card 1: Users / Model Predictions */}
@@ -190,7 +331,14 @@ export const AnalysisView: React.FC = () => {
                 </div>
               </div>
               <div className="kpi-sparkline-canvas">
-                <SparklineSvg data={sparklineUsers} color="#ef4444" isNegative />
+                <SparklineSvg
+                  data={sparklineUsers}
+                  color="#ef4444"
+                  isNegative
+                  motionDuration={getPresetCssTransition(motionPreset).duration}
+                  motionEase={getPresetCssTransition(motionPreset).timingFunction}
+                  chartKey={chartKey}
+                />
               </div>
             </div>
 
@@ -204,7 +352,13 @@ export const AnalysisView: React.FC = () => {
                 </div>
               </div>
               <div className="kpi-sparkline-canvas">
-                <SparklineSvg data={sparklineSessions} color="#10b981" />
+                <SparklineSvg
+                  data={sparklineSessions}
+                  color="#10b981"
+                  motionDuration={getPresetCssTransition(motionPreset).duration}
+                  motionEase={getPresetCssTransition(motionPreset).timingFunction}
+                  chartKey={chartKey}
+                />
               </div>
             </div>
 
@@ -218,7 +372,14 @@ export const AnalysisView: React.FC = () => {
                 </div>
               </div>
               <div className="kpi-sparkline-canvas">
-                <SparklineSvg data={sparklineDuration} color="#ef4444" isNegative />
+                <SparklineSvg
+                  data={sparklineDuration}
+                  color="#ef4444"
+                  isNegative
+                  motionDuration={getPresetCssTransition(motionPreset).duration}
+                  motionEase={getPresetCssTransition(motionPreset).timingFunction}
+                  chartKey={chartKey}
+                />
               </div>
             </div>
 
@@ -232,7 +393,13 @@ export const AnalysisView: React.FC = () => {
                 </div>
               </div>
               <div className="kpi-sparkline-canvas">
-                <SparklineSvg data={sparklineRequests} color="#10b981" />
+                <SparklineSvg
+                  data={sparklineRequests}
+                  color="#10b981"
+                  motionDuration={getPresetCssTransition(motionPreset).duration}
+                  motionEase={getPresetCssTransition(motionPreset).timingFunction}
+                  chartKey={chartKey}
+                />
               </div>
             </div>
           </div>
@@ -320,28 +487,46 @@ export const AnalysisView: React.FC = () => {
 
                   {/* Model A (Blue Line & Area) */}
                   <path
+                    key={`areaA-${chartKey}`}
+                    d={computeAreaSvgPath(modelASeries, 90, 100, 220, 15000, 6000)}
+                    fill="url(#blueGlowGrad)"
+                    style={{
+                      animation: `fadeArea ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                    }}
+                  />
+                  <path
+                    key={`lineA-${chartKey}`}
                     d={computeSmoothSvgPath(modelASeries, 90, 100, 220, 15000, 6000)}
                     fill="none"
                     stroke="#2563eb"
                     strokeWidth="3"
                     strokeLinecap="round"
-                  />
-                  <path
-                    d={computeAreaSvgPath(modelASeries, 90, 100, 220, 15000, 6000)}
-                    fill="url(#blueGlowGrad)"
+                    style={{
+                      animation: `drawPath ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                    }}
                   />
 
                   {/* Model B (Orange Line & Area) */}
                   <path
+                    key={`areaB-${chartKey}`}
+                    d={computeAreaSvgPath(modelBSeries, 90, 100, 220, 15000, 6000)}
+                    fill="url(#orangeGlowGrad)"
+                    style={{
+                      animation: `fadeArea ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                      animationDelay: `${motionTheme.stagger.tight}s`,
+                    }}
+                  />
+                  <path
+                    key={`lineB-${chartKey}`}
                     d={computeSmoothSvgPath(modelBSeries, 90, 100, 220, 15000, 6000)}
                     fill="none"
                     stroke="#ea580c"
                     strokeWidth="3"
                     strokeLinecap="round"
-                  />
-                  <path
-                    d={computeAreaSvgPath(modelBSeries, 90, 100, 220, 15000, 6000)}
-                    fill="url(#orangeGlowGrad)"
+                    style={{
+                      animation: `drawPath ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                      animationDelay: `${motionTheme.stagger.tight}s`,
+                    }}
                   />
 
                   {/* Interactive hover points */}
@@ -471,7 +656,15 @@ export const AnalysisView: React.FC = () => {
                   </div>
                   <span className="country-percent">50%</span>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: '50%', background: '#3b82f6' }} />
+                    <div
+                      className="progress-bar-fill"
+                      key={`country1-${chartKey}`}
+                      style={{
+                        width: '50%',
+                        background: '#3b82f6',
+                        transition: `width ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction}`,
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -482,7 +675,15 @@ export const AnalysisView: React.FC = () => {
                   </div>
                   <span className="country-percent">28%</span>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: '28%', background: '#10b981' }} />
+                    <div
+                      className="progress-bar-fill"
+                      key={`country2-${chartKey}`}
+                      style={{
+                        width: '28%',
+                        background: '#10b981',
+                        transition: `width ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction}`,
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -493,7 +694,15 @@ export const AnalysisView: React.FC = () => {
                   </div>
                   <span className="country-percent">14%</span>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: '14%', background: '#f59e0b' }} />
+                    <div
+                      className="progress-bar-fill"
+                      key={`country3-${chartKey}`}
+                      style={{
+                        width: '14%',
+                        background: '#f59e0b',
+                        transition: `width ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction}`,
+                      }}
+                    />
                   </div>
                 </div>
 
@@ -504,7 +713,15 @@ export const AnalysisView: React.FC = () => {
                   </div>
                   <span className="country-percent">8%</span>
                   <div className="progress-bar-bg">
-                    <div className="progress-bar-fill" style={{ width: '8%', background: '#8b5cf6' }} />
+                    <div
+                      className="progress-bar-fill"
+                      key={`country4-${chartKey}`}
+                      style={{
+                        width: '8%',
+                        background: '#8b5cf6',
+                        transition: `width ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction}`,
+                      }}
+                    />
                   </div>
                 </div>
               </div>
@@ -542,9 +759,10 @@ export const AnalysisView: React.FC = () => {
                     const heightB = (d.valB / 22000) * 150
                     const yA = 190 - heightA
                     const yB = 190 - heightB
+                    const delay = i * motionTheme.stagger.base
 
                     return (
-                      <g key={i}>
+                      <g key={`${i}-${chartKey}`}>
                         {/* Bar A (Blue) */}
                         <rect
                           x={x}
@@ -554,6 +772,11 @@ export const AnalysisView: React.FC = () => {
                           rx="3"
                           fill="#3b82f6"
                           className="bar-rect"
+                          style={{
+                            transformOrigin: `${x + 6}px 190px`,
+                            animation: `barRise ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                            animationDelay: `${delay}s`,
+                          }}
                         />
                         {/* Bar B (Orange) */}
                         <rect
@@ -564,6 +787,11 @@ export const AnalysisView: React.FC = () => {
                           rx="3"
                           fill="#f97316"
                           className="bar-rect"
+                          style={{
+                            transformOrigin: `${x + 20}px 190px`,
+                            animation: `barRise ${getPresetCssTransition(motionPreset).duration} ${getPresetCssTransition(motionPreset).timingFunction} forwards`,
+                            animationDelay: `${delay + motionTheme.stagger.tight}s`,
+                          }}
                         />
                         {/* Day label */}
                         <text x={x + 13} y="208" textAnchor="middle" className="bar-day-label">
@@ -895,8 +1123,22 @@ export const AnalysisView: React.FC = () => {
   )
 }
 
-// Sparkline helper
-function SparklineSvg({ data, color, isNegative }: { data: number[]; color: string; isNegative?: boolean }) {
+// Sparkline helper with physics spring motion
+function SparklineSvg({
+  data,
+  color,
+  isNegative,
+  motionDuration,
+  motionEase,
+  chartKey,
+}: {
+  data: number[]
+  color: string
+  isNegative?: boolean
+  motionDuration?: string
+  motionEase?: string
+  chartKey?: number
+}) {
   const id = useId()
   const min = Math.min(...data)
   const max = Math.max(...data)
@@ -937,8 +1179,25 @@ function SparklineSvg({ data, color, isNegative }: { data: number[]; color: stri
           <stop offset="100%" stopColor={color} stopOpacity="0.0" />
         </linearGradient>
       </defs>
-      <path d={areaD} fill={`url(#sparkGrad-${id})`} />
-      <path d={pathD} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <path
+        key={`sparkArea-${chartKey}`}
+        d={areaD}
+        fill={`url(#sparkGrad-${id})`}
+        style={{
+          animation: `fadeArea ${motionDuration || '450ms'} ${motionEase || 'ease-out'} forwards`,
+        }}
+      />
+      <path
+        key={`sparkLine-${chartKey}`}
+        d={pathD}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={{
+          animation: `drawPath ${motionDuration || '450ms'} ${motionEase || 'ease-out'} forwards`,
+        }}
+      />
       <circle cx={lastPoint.x} cy={lastPoint.y} r="3" fill={color} />
     </svg>
   )

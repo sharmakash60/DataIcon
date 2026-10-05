@@ -53,6 +53,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
     initSession()
+
+    const handleUnauthorized = () => {
+      clearStoredAuth()
+      setUser(null)
+      setOrganizations([])
+      setActiveOrgIdState(null)
+    }
+    window.addEventListener('auth:unauthorized', handleUnauthorized)
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized)
   }, [])
 
   const setActiveOrgId = (id: string) => {

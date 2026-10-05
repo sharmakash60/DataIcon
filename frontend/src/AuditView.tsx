@@ -18,9 +18,10 @@ export default function AuditView() {
     setError(null)
     try {
       const res = await api.getAuditEvents(orgId)
-      setEvents(res.items)
-      setTotal(res.total)
+      setEvents(res?.items || [])
+      setTotal(res?.total ?? 0)
     } catch (err: unknown) {
+      setEvents([])
       setError(err instanceof Error ? err.message : 'Failed to load audit events')
     } finally {
       setLoading(false)

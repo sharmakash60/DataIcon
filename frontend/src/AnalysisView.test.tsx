@@ -68,4 +68,26 @@ describe('AnalysisView Component', () => {
 
     expect(screen.queryByText(/Start a Model Optimization Brief/i)).not.toBeInTheDocument()
   })
+
+  it('renders motion presets toolbar and toggles spring physics presets', () => {
+    render(<AnalysisView />)
+
+    expect(screen.getByText(/Consistent, customisable motion/i)).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'SNAP' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'UI' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'GENTLE' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'LIVELY' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'AMBIENT' })).toBeInTheDocument()
+
+    // Default is AMBIENT (K 43, C 13)
+    expect(screen.getByText(/AMBIENT K 43 - C 13/i)).toBeInTheDocument()
+
+    // Switch to LIVELY (K 622, C 17)
+    fireEvent.click(screen.getByRole('tab', { name: 'LIVELY' }))
+    expect(screen.getByText(/LIVELY K 622 - C 17/i)).toBeInTheDocument()
+
+    // Switch to SNAP (K 1218, C 70)
+    fireEvent.click(screen.getByRole('tab', { name: 'SNAP' }))
+    expect(screen.getByText(/SNAP K 1218 - C 70/i)).toBeInTheDocument()
+  })
 })
