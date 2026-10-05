@@ -29,101 +29,20 @@ export const DaTaIconEmblem: React.FC<{ size?: number; className?: string; style
   style = {}
 }) => {
   return (
-    <svg
+    <img
+      src="/logo.png"
+      alt="DaTaIcon Emblem"
       width={size}
       height={size}
-      viewBox="0 0 130 130"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className={className}
-      style={{ display: 'inline-block', verticalAlign: 'middle', flexShrink: 0, ...style }}
-      aria-label="DaTaIcon Emblem"
-    >
-      <defs>
-        {/* Soft Drop Shadow for the letter D */}
-        <filter id="di-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="1.5" dy="2" stdDeviation="1" floodColor="#4a6348" floodOpacity="0.45" />
-        </filter>
-        {/* Subtle gradient for upper shield facet */}
-        <linearGradient id="di-facet-top" x1="65" y1="18" x2="65" y2="82" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#8da98b" />
-          <stop offset="100%" stopColor="#829F80" />
-        </linearGradient>
-        {/* Subtle gradient for lower shield facet */}
-        <linearGradient id="di-facet-bottom" x1="65" y1="72" x2="65" y2="114" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#b6cca4" />
-          <stop offset="100%" stopColor="#a3bfa0" />
-        </linearGradient>
-      </defs>
-
-      {/* Back Segment of Upper Orbital Ring */}
-      <path
-        d="M 24 44 C 18 36 28 26 65 26 C 102 26 112 36 106 44"
-        stroke="#adc4ab"
-        strokeWidth="6"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.85"
-      />
-
-      {/* Back Segment of Lower Orbital Ring */}
-      <path
-        d="M 24 64 C 18 56 28 46 65 46 C 102 46 112 56 106 64"
-        stroke="#adc4ab"
-        strokeWidth="6"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.85"
-      />
-
-      {/* Central Shield: Lower Facet (Light Sage) */}
-      <path
-        d="M 28 70 L 65 83 L 102 70 L 65 116 Z"
-        fill="url(#di-facet-bottom)"
-        stroke="#96b293"
-        strokeWidth="1.5"
-      />
-
-      {/* Central Shield: Upper Main Facet (#829F80 Primary Sage) */}
-      <path
-        d="M 65 18 L 106 36 L 98 72 L 65 83 L 32 72 L 24 36 Z"
-        fill="url(#di-facet-top)"
-        stroke="#738f71"
-        strokeWidth="1.5"
-      />
-
-      {/* Front Segment of Upper Orbital Ring (Encircling foreground) */}
-      <path
-        d="M 24 44 C 30 52 50 56 65 56 C 80 56 100 52 106 44 C 114 34 94 28 65 28 C 36 28 16 34 24 44 Z"
-        stroke="#adc4ab"
-        strokeWidth="5.5"
-        fill="none"
-      />
-
-      {/* Front Segment of Lower Orbital Ring (Encircling foreground) */}
-      <path
-        d="M 24 64 C 30 72 50 76 65 76 C 80 76 100 72 106 64 C 114 54 94 48 65 48 C 36 48 16 54 24 64 Z"
-        stroke="#adc4ab"
-        strokeWidth="5.5"
-        fill="none"
-      />
-
-      {/* Iconic Bold Letter 'D' with Drop Shadow */}
-      <text
-        x="65"
-        y="60"
-        textAnchor="middle"
-        dominantBaseline="central"
-        fill="#ffffff"
-        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial Black', sans-serif"
-        fontWeight="900"
-        fontSize="36"
-        letterSpacing="0.5"
-        filter="url(#di-shadow)"
-      >
-        D
-      </text>
-    </svg>
+      style={{
+        display: 'inline-block',
+        verticalAlign: 'middle',
+        flexShrink: 0,
+        objectFit: 'contain',
+        ...style
+      }}
+    />
   )
 }
 

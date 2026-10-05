@@ -546,8 +546,8 @@ export const DatasetsView: React.FC = () => {
       {/* MODAL 2: Direct File Upload */}
       {showUploadModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card" style={{ maxWidth: '620px' }}>
-            <div className="modal-header">
+          <div className="modal-card" style={{ maxWidth: '640px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-header" style={{ marginBottom: '12px', flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <UploadCloudIcon size={20} color="#829F80" />
                 <h3 style={{ margin: 0 }}>Direct Dataset File Upload</h3>
@@ -555,159 +555,162 @@ export const DatasetsView: React.FC = () => {
               <button className="btn-close" onClick={() => setShowUploadModal(false)}>✕</button>
             </div>
             
-            <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#64748b' }}>
-              Upload local CSV, JSON, or Parquet datasets directly for immediate model exploration and health profiling.
-            </p>
+            <form onSubmit={handleUploadSubmit} className="modal-form" style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto', minHeight: 0 }}>
+              <div className="modal-scroll-body" style={{ overflowY: 'auto', flex: '1 1 auto', paddingRight: '4px', minHeight: 0 }}>
+                <p style={{ margin: '0 0 14px 0', fontSize: '0.85rem', color: '#64748b' }}>
+                  Upload local CSV, JSON, or Parquet datasets directly for immediate model exploration and health profiling.
+                </p>
 
-            {/* Quick 1-Click Test Presets */}
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '0.04em' }}>
-                QUICK TEST SAMPLES (CLICK TO TEST IMMEDIATELY):
-              </div>
-              <div className="dataset-quick-samples">
-                <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('churn')}>
-                  ⚡ Telecom Churn (7,043 rows)
-                </button>
-                <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('credit')}>
-                  ⚡ Credit Risk (15,200 rows)
-                </button>
-                <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('housing')}>
-                  ⚡ Housing Valuation (2,930 rows)
-                </button>
-              </div>
-            </div>
-
-            {/* Dropzone */}
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept=".csv,.json,.parquet,.xlsx"
-              style={{ display: 'none' }}
-              onChange={handleFileChange}
-            />
-
-            <div
-              className={`dataset-upload-dropzone ${isDragOver ? 'is-dragover' : ''}`}
-              onClick={() => fileInputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
-              onDragLeave={() => setIsDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault()
-                setIsDragOver(false)
-                const file = e.dataTransfer.files?.[0]
-                if (file) {
-                  const reader = new FileReader()
-                  reader.onload = (event) => {
-                    const text = (event.target?.result as string) || ''
-                    parseFileContent(file.name, text)
-                  }
-                  reader.readAsText(file.slice(0, 100000))
-                }
-              }}
-            >
-              <div className="dropzone-icon-box">
-                <UploadCloudIcon size={22} color="#829F80" />
-              </div>
-              <div className="dropzone-title">
-                {uploadedFileName ? `Selected: ${uploadedFileName}` : 'Choose a file or drag & drop here'}
-              </div>
-              <p className="dropzone-sub">
-                Supports CSV, JSON, Parquet, or Excel files up to 250 MB
-              </p>
-            </div>
-
-            {/* File Parse Telemetry & Preview */}
-            {parsedColumns.length > 0 && (
-              <div className="upload-preview-container" style={{ marginTop: '16px' }}>
-                <div className="upload-stats-strip">
-                  <span className="upload-stats-badge">✓ {parsedRowCount.toLocaleString()} Rows Parsed</span>
-                  <span className="upload-stats-badge">✓ {parsedColumns.length} Features Detected</span>
-                  <span className="upload-stats-badge" style={{ color: '#047857', background: '#ecfdf5', borderColor: '#a7f3d0' }}>
-                    ✓ SHA-256 Air-Gapped Hash Verified
-                  </span>
+                {/* Quick 1-Click Test Presets */}
+                <div style={{ marginBottom: '14px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569', letterSpacing: '0.04em', marginBottom: '6px' }}>
+                    QUICK TEST SAMPLES (CLICK TO TEST IMMEDIATELY):
+                  </div>
+                  <div className="dataset-quick-samples">
+                    <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('churn')}>
+                      ⚡ Telecom Churn (7,043 rows)
+                    </button>
+                    <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('credit')}>
+                      ⚡ Credit Risk (15,200 rows)
+                    </button>
+                    <button type="button" className="sample-pill-btn" onClick={() => handleLoadSample('housing')}>
+                      ⚡ Housing Valuation (2,930 rows)
+                    </button>
+                  </div>
                 </div>
 
-                {previewRows.length > 0 && (
-                  <div style={{ overflowX: 'auto', maxHeight: '110px', marginTop: '6px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
-                      <thead>
-                        <tr style={{ background: '#e2e8f0', color: '#334155' }}>
-                          {parsedColumns.slice(0, 6).map((col, idx) => (
-                            <th key={idx} style={{ padding: '4px 8px' }}>{col}</th>
-                          ))}
-                          {parsedColumns.length > 6 && <th style={{ padding: '4px 8px' }}>...</th>}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {previewRows.map((row, rIdx) => (
-                          <tr key={rIdx} style={{ borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
-                            {row.slice(0, 6).map((cell, cIdx) => (
-                              <td key={cIdx} style={{ padding: '4px 8px' }}>{cell}</td>
+                {/* Dropzone */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".csv,.json,.parquet,.xlsx"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+
+                <div
+                  className={`dataset-upload-dropzone ${isDragOver ? 'is-dragover' : ''}`}
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsDragOver(true) }}
+                  onDragLeave={() => setIsDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    setIsDragOver(false)
+                    const file = e.dataTransfer.files?.[0]
+                    if (file) {
+                      const reader = new FileReader()
+                      reader.onload = (event) => {
+                        const text = (event.target?.result as string) || ''
+                        parseFileContent(file.name, text)
+                      }
+                      reader.readAsText(file.slice(0, 100000))
+                    }
+                  }}
+                >
+                  <div className="dropzone-icon-box">
+                    <UploadCloudIcon size={20} color="#829F80" />
+                  </div>
+                  <div className="dropzone-title">
+                    {uploadedFileName ? `Selected: ${uploadedFileName}` : 'Choose a file or drag & drop here'}
+                  </div>
+                  <p className="dropzone-sub">
+                    Supports CSV, JSON, Parquet, or Excel files up to 250 MB
+                  </p>
+                </div>
+
+                {/* File Parse Telemetry & Preview */}
+                {parsedColumns.length > 0 && (
+                  <div className="upload-preview-container" style={{ marginTop: '14px' }}>
+                    <div className="upload-stats-strip">
+                      <span className="upload-stats-badge">✓ {parsedRowCount.toLocaleString()} Rows Parsed</span>
+                      <span className="upload-stats-badge">✓ {parsedColumns.length} Features Detected</span>
+                      <span className="upload-stats-badge" style={{ color: '#047857', background: '#ecfdf5', borderColor: '#a7f3d0' }}>
+                        ✓ SHA-256 Air-Gapped Hash Verified
+                      </span>
+                    </div>
+
+                    {previewRows.length > 0 && (
+                      <div style={{ overflowX: 'auto', maxHeight: '100px', marginTop: '6px' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem', textAlign: 'left' }}>
+                          <thead>
+                            <tr style={{ background: '#e2e8f0', color: '#334155' }}>
+                              {parsedColumns.slice(0, 6).map((col, idx) => (
+                                <th key={idx} style={{ padding: '4px 8px' }}>{col}</th>
+                              ))}
+                              {parsedColumns.length > 6 && <th style={{ padding: '4px 8px' }}>...</th>}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {previewRows.map((row, rIdx) => (
+                              <tr key={rIdx} style={{ borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                                {row.slice(0, 6).map((cell, cIdx) => (
+                                  <td key={cIdx} style={{ padding: '4px 8px' }}>{cell}</td>
+                                ))}
+                                {parsedColumns.length > 6 && <td style={{ padding: '4px 8px' }}>...</td>}
+                              </tr>
                             ))}
-                            {parsedColumns.length > 6 && <td style={{ padding: '4px 8px' }}>...</td>}
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
 
-            <form onSubmit={handleUploadSubmit} className="modal-form" style={{ marginTop: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="upload-name">Dataset Name *</label>
-                <input
-                  id="upload-name"
-                  type="text"
-                  required
-                  placeholder="e.g. Q3 Sales Pipeline Evaluation"
-                  value={uploadName}
-                  onChange={(e) => setUploadName(e.target.value)}
-                />
-              </div>
+                <div className="form-group" style={{ marginTop: '14px' }}>
+                  <label htmlFor="upload-name">Dataset Name *</label>
+                  <input
+                    id="upload-name"
+                    type="text"
+                    required
+                    placeholder="e.g. Q3 Sales Pipeline Evaluation"
+                    value={uploadName}
+                    onChange={(e) => setUploadName(e.target.value)}
+                  />
+                </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div className="form-group">
-                  <label htmlFor="upload-target">Target Column (Label to Predict) *</label>
-                  {parsedColumns.length > 0 ? (
-                    <select id="upload-target" value={uploadTarget} onChange={(e) => setUploadTarget(e.target.value)}>
-                      {parsedColumns.map((col, idx) => (
-                        <option key={idx} value={col}>{col}</option>
-                      ))}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className="form-group">
+                    <label htmlFor="upload-target">Target Column (Label to Predict) *</label>
+                    {parsedColumns.length > 0 ? (
+                      <select id="upload-target" value={uploadTarget} onChange={(e) => setUploadTarget(e.target.value)}>
+                        {parsedColumns.map((col, idx) => (
+                          <option key={idx} value={col}>{col}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <input
+                        id="upload-target"
+                        type="text"
+                        required
+                        placeholder="e.g. target or label"
+                        value={uploadTarget}
+                        onChange={(e) => setUploadTarget(e.target.value)}
+                      />
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="upload-problem-type">Problem Type</label>
+                    <select id="upload-problem-type" value={uploadProblemType} onChange={(e) => setUploadProblemType(e.target.value)}>
+                      <option value="binary_classification">Binary Classification</option>
+                      <option value="regression">Regression</option>
+                      <option value="multiclass">Multi-Class Classification</option>
                     </select>
-                  ) : (
-                    <input
-                      id="upload-target"
-                      type="text"
-                      required
-                      placeholder="e.g. target or label"
-                      value={uploadTarget}
-                      onChange={(e) => setUploadTarget(e.target.value)}
-                    />
-                  )}
+                  </div>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="upload-problem-type">Problem Type</label>
-                  <select id="upload-problem-type" value={uploadProblemType} onChange={(e) => setUploadProblemType(e.target.value)}>
-                    <option value="binary_classification">Binary Classification</option>
-                    <option value="regression">Regression</option>
-                    <option value="multiclass">Multi-Class Classification</option>
+                  <label htmlFor="upload-classification">Security & Governance Classification</label>
+                  <select id="upload-classification" value={uploadClassification} onChange={(e) => setUploadClassification(e.target.value)}>
+                    <option value="Internal">Internal (General analytics access)</option>
+                    <option value="Confidential">Confidential (Differential privacy noise enabled)</option>
+                    <option value="Restricted">Restricted (Strict PII masking, SOC 2 logged)</option>
                   </select>
                 </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="upload-classification">Security & Governance Classification</label>
-                <select id="upload-classification" value={uploadClassification} onChange={(e) => setUploadClassification(e.target.value)}>
-                  <option value="Internal">Internal (General analytics access)</option>
-                  <option value="Confidential">Confidential (Differential privacy noise enabled)</option>
-                  <option value="Restricted">Restricted (Strict PII masking, SOC 2 logged)</option>
-                </select>
-              </div>
-
-              <div className="modal-actions">
+              {/* Pinned Action Buttons Footer */}
+              <div className="modal-actions" style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #e2e8f0', flexShrink: 0 }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowUploadModal(false)}>Cancel</button>
                 <button type="submit" className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <CheckIcon size={16} />

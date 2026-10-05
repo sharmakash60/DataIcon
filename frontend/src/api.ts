@@ -107,14 +107,19 @@ export async function apiRequest<T>(
   headers.set('Content-Type', 'application/json')
 
   const token = getStoredToken()
-  if (token) {
+  if (token && !path.includes('/auth/login') && !path.includes('/auth/register')) {
     headers.set('Authorization', `Bearer ${token}`)
   }
 
   let response = await fetch(path, { ...options, headers })
 
-  // Attempt refresh on 401
-  if (response.status === 401 && getStoredRefreshToken()) {
+  // Attempt refresh on 401 (except for login/register/refresh endpoints)
+  if (
+    response.status === 401 &&
+    !path.includes('/auth/login') &&
+    !path.includes('/auth/refresh') &&
+    getStoredRefreshToken()
+  ) {
     const refreshToken = getStoredRefreshToken()
     try {
       const refreshRes = await fetch('/api/v1/auth/refresh', {

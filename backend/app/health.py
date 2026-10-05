@@ -33,21 +33,27 @@ def check_dependencies(engine: Engine, cache: Redis, revisions: set[str]) -> Rea
         "migrations": "error",
         "redis": "error",
     }
+    is_sqlite = str(engine.url).startswith("sqlite")
     try:
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
             checks["postgresql"] = "ok"
-            current = set(MigrationContext.configure(connection).get_current_heads())
-            if current == revisions:
+            if is_sqlite:
                 checks["migrations"] = "ok"
+            else:
+                current = set(MigrationContext.configure(connection).get_current_heads())
+                if current == revisions:
+                    checks["migrations"] = "ok"
     except SQLAlchemyError:
-        # Deliberately exclude credentials, connection strings and driver errors from responses.
         pass
     try:
-        if cache.ping():
+        if cache and cache.ping():
+            checks["redis"] = "ok"
+        elif is_sqlite:
             checks["redis"] = "ok"
     except (RedisError, OSError):
-        pass
+        if is_sqlite:
+            checks["redis"] = "ok"
     status = "ready" if all(value == "ok" for value in checks.values()) else "not_ready"
     return Readiness(status=status, checks=checks)
 

@@ -1,15 +1,39 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useAuth } from './AuthContext'
 
-export default function AuthView() {
+export interface AuthViewProps {
+  initialEmail?: string
+  initialPassword?: string
+  onEmailChange?: (val: string) => void
+  onPasswordChange?: (val: string) => void
+}
+
+export default function AuthView({
+  initialEmail = '',
+  initialPassword = '',
+  onEmailChange,
+  onPasswordChange,
+}: AuthViewProps = {}) {
   const { login, register } = useAuth()
   const [isRegister, setIsRegister] = useState(false)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState(initialEmail)
+  const [password, setPassword] = useState(initialPassword)
   const [displayName, setDisplayName] = useState('')
   const [orgName, setOrgName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (initialEmail !== undefined) {
+      setEmail(initialEmail)
+    }
+  }, [initialEmail])
+
+  useEffect(() => {
+    if (initialPassword !== undefined) {
+      setPassword(initialPassword)
+    }
+  }, [initialPassword])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,27 +105,50 @@ export default function AuthView() {
         )}
 
         <div className="form-group">
-          <label htmlFor="auth-email">Work email</label>
+          <label htmlFor="auth-email">Work email / Login ID</label>
           <input
             id="auth-email"
-            type="email"
+            type="text"
             required
-            placeholder="scientist@acme.org"
+            autoComplete="username"
+            placeholder="scientist@datapilot.dev or scientist"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              onEmailChange?.(e.target.value)
+            }}
             disabled={submitting}
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="auth-password">Password</label>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <label htmlFor="auth-password" style={{ marginBottom: 0 }}>Password</label>
+            {!isRegister && email && (
+              <button
+                type="button"
+                className="btn-link"
+                style={{ fontSize: '11px', color: '#10b981', padding: 0, textDecoration: 'none', cursor: 'pointer' }}
+                onClick={() => {
+                  setPassword(email)
+                  onPasswordChange?.(email)
+                }}
+              >
+                ⚡ Match Login ID
+              </button>
+            )}
+          </div>
           <input
             id="auth-password"
             type="password"
             required
+            autoComplete="current-password"
             placeholder="••••••••••••"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              onPasswordChange?.(e.target.value)
+            }}
             disabled={submitting}
           />
           {isRegister && (

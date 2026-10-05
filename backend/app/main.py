@@ -29,18 +29,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(application: FastAPI):
         application.state.engine = build_engine(config)
-        application.state.cache = Redis.from_url(
-            str(config.redis_url),
-            socket_connect_timeout=config.dependency_timeout_seconds,
-            socket_timeout=config.dependency_timeout_seconds,
-            retry_on_timeout=False,
-            decode_responses=True,
-        )
+        try:
+            cache_client = Redis.from_url(
+                str(config.redis_url),
+                socket_connect_timeout=1,
+                socket_timeout=1,
+                retry_on_timeout=False,
+                decode_responses=True,
+            )
+            cache_client.ping()
+            application.state.cache = cache_client
+        except Exception:
+            application.state.cache = None
+
         application.state.revisions = expected_revisions()
         try:
             yield
         finally:
-            application.state.cache.close()
+            if getattr(application.state, "cache", None) is not None:
+                try:
+                    application.state.cache.close()
+                except Exception:
+                    pass
             application.state.engine.dispose()
 
     application = FastAPI(

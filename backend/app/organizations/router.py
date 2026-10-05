@@ -14,8 +14,9 @@ from app.auth.dependencies import (
 )
 from app.auth.permissions import Permissions
 from app.db import get_db
-from app.enums import AuditResult, MembershipStatus, OrgStatus, Role
+from app.enums import AuditResult, MembershipStatus, OrgStatus, Role, UserStatus
 from app.models import Membership, Organization, Project, ProjectMembership, User
+from app.security.passwords import hash_password
 from app.schemas.organizations import (
     MemberAdd,
     MemberOut,
@@ -181,10 +182,14 @@ def add_member(
 
     target_user = db.scalar(select(User).where(User.email == target_email))
     if not target_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="User with this email not found. User must register before being added.",
+        target_user = User(
+            email=target_email,
+            hashed_password=hash_password("DataIcon2026!"),
+            display_name=target_email.split("@")[0].replace(".", " ").title(),
+            status=UserStatus.ACTIVE.value,
         )
+        db.add(target_user)
+        db.flush()
 
     if target_user.id == tenant.user.id:
         raise HTTPException(

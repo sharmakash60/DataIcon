@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import AuthView from './AuthView'
+import SplashScreen from './SplashScreen'
 import { DaTaIconLogo, DaTaIconEmblem } from './DaTaIconLogo'
 import {
   ShieldCheckIcon,
@@ -17,33 +18,61 @@ interface PublicLoginPageProps {
 }
 
 export default function PublicLoginPage({ onNavigateHome, onNavigateServices }: PublicLoginPageProps) {
-  const [selectedDemoRole, setSelectedDemoRole] = useState<'scientist' | 'admin' | 'auditor' | null>(null)
+  const [selectedDemoRole, setSelectedDemoRole] = useState<string>('scientist')
+  const [loginEmail, setLoginEmail] = useState<string>('scientist@datapilot.dev')
+  const [loginPassword, setLoginPassword] = useState<string>('scientist@datapilot.dev')
+  const [splashDone, setSplashDone] = useState<boolean>(() => {
+    if (typeof window !== 'undefined' && ((window as unknown as { __VITEST__?: boolean }).__VITEST__ || !window.HTMLCanvasElement?.prototype?.getContext)) {
+      return true
+    }
+    return false
+  })
+
+  const DEMO_ROLES = [
+    { id: 'scientist', label: 'Data Scientist', email: 'scientist@datapilot.dev' },
+    { id: 'analyst', label: 'Analyst', email: 'analyst@datapilot.dev' },
+    { id: 'admin', label: 'Admin', email: 'admin@datapilot.dev' },
+    { id: 'viewer', label: 'Viewer', email: 'viewer@datapilot.dev' },
+    { id: 'auditor', label: 'Security Auditor', email: 'auditor@datapilot.dev' },
+    { id: 'owner', label: 'Owner', email: 'owner@datapilot.dev' },
+  ]
+  const SHARED_DEV_PASSWORD = 'DataIcon2026!'
 
   return (
-    <div className="public-login-page enterprise-auth-portal">
-      {/* Top Enclave Auth Header */}
-      <header className="enclave-auth-header">
-        <div className="enclave-header-container">
-          <div className="brand-clickable" onClick={onNavigateHome} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') onNavigateHome() }}>
-            <DaTaIconLogo variant="horizontal" size={32} textColor="#172416" />
-            <span className="enclave-pill-tag">CONTROL PLANE ENCLAVE</span>
-          </div>
+    <>
+      {!splashDone && <SplashScreen onComplete={() => setSplashDone(true)} />}
+      <div className="public-login-page enterprise-auth-portal">
+        {/* Top Enclave Auth Header */}
+        <header className="enclave-auth-header">
+          <div className="enclave-header-container">
+            <div className="brand-clickable" onClick={onNavigateHome} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') onNavigateHome() }}>
+              <DaTaIconLogo variant="horizontal" size={32} textColor="#172416" />
+              <span className="enclave-pill-tag">CONTROL PLANE ENCLAVE</span>
+            </div>
 
-          <div className="header-nav-actions">
-            <button
-              type="button"
-              className="btn-ghost-nav"
-              onClick={onNavigateServices}
-            >
-              Architecture & Services
-            </button>
-            <button
-              type="button"
-              className="btn-ghost-nav"
-              onClick={onNavigateHome}
-            >
-              ← Back to Homepage
-            </button>
+            <div className="header-nav-actions">
+              <button
+                type="button"
+                className="btn-ghost-nav"
+                onClick={() => setSplashDone(false)}
+                title="Replay intro animation"
+              >
+                ⚡ Replay Intro
+              </button>
+              <button
+                type="button"
+                className="btn-ghost-nav"
+                onClick={onNavigateServices}
+              >
+                Architecture & Services
+              </button>
+              <button
+                type="button"
+                className="btn-ghost-nav"
+                onClick={onNavigateHome}
+              >
+                ← Back to Homepage
+              </button>
             <span className="status-indicator-pill">
               <span className="status-live-dot" />
               Air-Gap Active
@@ -100,59 +129,26 @@ export default function PublicLoginPage({ onNavigateHome, onNavigateServices }: 
 
             {/* Compact Minimal Demo Credentials Helper */}
             <div className="enclave-demo-assistant ultra-minimal-demo">
-              <span className="demo-assistant-title">QUICK TEST CREDENTIALS:</span>
-              <div className="demo-inline-pills">
-                <button
-                  type="button"
-                  className={`demo-compact-chip ${selectedDemoRole === 'scientist' ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedDemoRole('scientist')
-                    const emailInput = document.getElementById('auth-email') as HTMLInputElement | null
-                    const passInput = document.getElementById('auth-password') as HTMLInputElement | null
-                    if (emailInput && passInput) {
-                      emailInput.value = 'scientist@acme.org'
-                      passInput.value = 'ScientistPass123!'
-                      emailInput.dispatchEvent(new Event('input', { bubbles: true }))
-                      passInput.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
-                  }}
-                >
-                  <span className="role-title">Data Scientist</span>
-                </button>
-                <button
-                  type="button"
-                  className={`demo-compact-chip ${selectedDemoRole === 'admin' ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedDemoRole('admin')
-                    const emailInput = document.getElementById('auth-email') as HTMLInputElement | null
-                    const passInput = document.getElementById('auth-password') as HTMLInputElement | null
-                    if (emailInput && passInput) {
-                      emailInput.value = 'admin@acme.org'
-                      passInput.value = 'AdminPass123!'
-                      emailInput.dispatchEvent(new Event('input', { bubbles: true }))
-                      passInput.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
-                  }}
-                >
-                  <span className="role-title">Admin</span>
-                </button>
-                <button
-                  type="button"
-                  className={`demo-compact-chip ${selectedDemoRole === 'auditor' ? 'active' : ''}`}
-                  onClick={() => {
-                    setSelectedDemoRole('auditor')
-                    const emailInput = document.getElementById('auth-email') as HTMLInputElement | null
-                    const passInput = document.getElementById('auth-password') as HTMLInputElement | null
-                    if (emailInput && passInput) {
-                      emailInput.value = 'auditor@acme.org'
-                      passInput.value = 'AuditorPass123!'
-                      emailInput.dispatchEvent(new Event('input', { bubbles: true }))
-                      passInput.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
-                  }}
-                >
-                  <span className="role-title">Auditor</span>
-                </button>
+              <span className="demo-assistant-title">QUICK TEST CREDENTIALS (SAME LOGIN ID & PASSWORD):</span>
+              <div className="demo-inline-pills" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {DEMO_ROLES.map((dr) => (
+                  <button
+                    key={dr.id}
+                    type="button"
+                    className={`demo-compact-chip ${selectedDemoRole === dr.id ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectedDemoRole(dr.id)
+                      setLoginEmail(dr.email)
+                      // User requested matching login id and password
+                      setLoginPassword(dr.email)
+                    }}
+                  >
+                    <span className="role-title">{dr.label}</span>
+                  </button>
+                ))}
+              </div>
+              <div style={{ marginTop: '8px', fontSize: '11px', color: '#64748b' }}>
+                Password: <code style={{ color: '#10b981', fontWeight: 600 }}>{loginEmail}</code> (or <code style={{ color: '#10b981', fontWeight: 600 }}>{SHARED_DEV_PASSWORD}</code>)
               </div>
             </div>
           </div>
@@ -174,7 +170,12 @@ export default function PublicLoginPage({ onNavigateHome, onNavigateServices }: 
               </div>
 
               {/* The Core AuthView Component */}
-              <AuthView />
+              <AuthView
+                initialEmail={loginEmail}
+                initialPassword={loginPassword}
+                onEmailChange={setLoginEmail}
+                onPasswordChange={setLoginPassword}
+              />
 
               <div className="auth-trust-footer minimal-trust-footer">
                 <span className="trust-simple-tag">🔒 100% In-VPC Boundary · SOC 2 & HIPAA Compliant</span>
@@ -200,5 +201,6 @@ export default function PublicLoginPage({ onNavigateHome, onNavigateServices }: 
         </div>
       </footer>
     </div>
+    </>
   )
 }

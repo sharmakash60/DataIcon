@@ -352,7 +352,9 @@ export default function TeamView() {
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={submitting}
                 />
-                <p className="field-hint">User must already have an account on DaTaIcon.</p>
+                <p className="field-hint">
+                  New users will be created automatically with assigned role and default password: <code>DataIcon2026!</code>
+                </p>
               </div>
 
               <div className="form-group">

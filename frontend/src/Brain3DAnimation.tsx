@@ -469,6 +469,65 @@ export default function Brain3DAnimation() {
     const wireframeMesh = new THREE.Mesh(cortexGeo, wireframeMat)
     brainSubGroup.add(wireframeMesh)
 
+    // -------------------------------------------------------------------------
+    // Core DaTaIcon Logo inside the 3D Neural Brain (Exact Brand Logo)
+    // -------------------------------------------------------------------------
+    const textureLoader = new THREE.TextureLoader()
+    const logoTex = textureLoader.load('/logo.png')
+    const isSplashActive =
+      (typeof window !== 'undefined' && Boolean(window.__dataicon_splash_active)) ||
+      (typeof document !== 'undefined' && Boolean(document.querySelector('.splash-root')))
+    // Prominent, high-contrast visibility inside the neural brain
+    let logoTargetOpacity = isSplashActive ? 0 : 0.96
+
+    // Soft sage/white core glow behind the logo plane for enhanced contrast and vibrancy
+    const glowCanvas = document.createElement('canvas')
+    glowCanvas.width = 128
+    glowCanvas.height = 128
+    const gCtx = glowCanvas.getContext('2d')
+    if (gCtx) {
+      const gGrad = gCtx.createRadialGradient(64, 64, 6, 64, 64, 62)
+      gGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)')
+      gGrad.addColorStop(0.35, 'rgba(173, 196, 171, 0.35)')
+      gGrad.addColorStop(0.7, 'rgba(130, 159, 128, 0.15)')
+      gGrad.addColorStop(1, 'transparent')
+      gCtx.fillStyle = gGrad
+      gCtx.beginPath()
+      gCtx.arc(64, 64, 62, 0, Math.PI * 2)
+      gCtx.fill()
+    }
+    const glowTex = new THREE.CanvasTexture(glowCanvas)
+    const glowMat = new THREE.MeshBasicMaterial({
+      map: glowTex,
+      transparent: true,
+      opacity: isSplashActive ? 0 : 0.85,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    })
+    const glowPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.22, 1.22), glowMat)
+    glowPlane.renderOrder = 1
+    glowPlane.visible = !isSplashActive
+    brainSubGroup.add(glowPlane)
+
+    const logoMat = new THREE.MeshBasicMaterial({
+      map: logoTex,
+      transparent: true,
+      opacity: isSplashActive ? 0 : 0.96,
+      side: THREE.DoubleSide,
+      depthWrite: false
+    })
+    const logoPlane = new THREE.Mesh(new THREE.PlaneGeometry(0.98, 0.98), logoMat)
+    logoPlane.renderOrder = 2
+    logoPlane.visible = !isSplashActive
+    brainSubGroup.add(logoPlane)
+
+    const handleLogoReveal = () => {
+      logoPlane.visible = true
+      glowPlane.visible = true
+      logoTargetOpacity = 0.96
+    }
+    window.addEventListener('dataicon:splash-complete', handleLogoReveal)
+
     const corePulseCount = 35
     const pulsePositions = new Float32Array(corePulseCount * 3)
     const pulseProgress = new Float32Array(corePulseCount)
@@ -844,6 +903,11 @@ export default function Brain3DAnimation() {
         })
       })
 
+      if (logoPlane.visible && logoMat.opacity < logoTargetOpacity) {
+        logoMat.opacity = Math.min(logoTargetOpacity, logoMat.opacity + 0.06)
+        glowMat.opacity = Math.min(0.85, glowMat.opacity + 0.06)
+      }
+
       setProjectedNodes(projected)
       renderer.render(scene, camera)
     }
@@ -863,6 +927,7 @@ export default function Brain3DAnimation() {
 
     return () => {
       window.removeEventListener('resize', handleResize)
+      window.removeEventListener('dataicon:splash-complete', handleLogoReveal)
       cancelAnimationFrame(animationFrameId)
       renderer.dispose()
       scene.clear()

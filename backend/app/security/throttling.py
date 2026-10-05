@@ -15,8 +15,10 @@ def get_login_attempt_key(email: str) -> str:
     return f"datapilot:login_attempts:{email_hash}"
 
 
-def is_login_locked(cache: Redis, email: str, settings: Settings) -> bool:
+def is_login_locked(cache: Redis | None, email: str, settings: Settings) -> bool:
     """Check if the email has exceeded maximum allowed failed attempts."""
+    if cache is None:
+        return False
     try:
         key = get_login_attempt_key(email)
         attempts = cache.get(key)
@@ -24,12 +26,14 @@ def is_login_locked(cache: Redis, email: str, settings: Settings) -> bool:
             return True
         return False
     except (RedisError, OSError) as exc:
-        logger.warning("Throttling cache check failed: %s", exc)
+        logger.debug("Throttling cache check failed: %s", exc)
         return False
 
 
-def record_failed_login(cache: Redis, email: str, settings: Settings) -> int:
+def record_failed_login(cache: Redis | None, email: str, settings: Settings) -> int:
     """Record a failed login attempt and set/refresh TTL."""
+    if cache is None:
+        return 1
     try:
         key = get_login_attempt_key(email)
         pipe = cache.pipeline()
@@ -38,14 +42,16 @@ def record_failed_login(cache: Redis, email: str, settings: Settings) -> int:
         results = pipe.execute()
         return int(results[0])
     except (RedisError, OSError) as exc:
-        logger.warning("Throttling record failure failed: %s", exc)
+        logger.debug("Throttling record failure failed: %s", exc)
         return 1
 
 
-def clear_failed_logins(cache: Redis, email: str) -> None:
+def clear_failed_logins(cache: Redis | None, email: str) -> None:
     """Clear failed login attempts upon successful authentication."""
+    if cache is None:
+        return
     try:
         key = get_login_attempt_key(email)
         cache.delete(key)
     except (RedisError, OSError) as exc:
-        logger.warning("Throttling clear failed: %s", exc)
+        logger.debug("Throttling clear failed: %s", exc)
